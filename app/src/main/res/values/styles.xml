@@ -1,0 +1,15 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">@color/default_primary</item>
+        <item name="colorPrimaryDark">@color/default_primary_dark</item>
+        <item name="colorAccent">@color/default_accent</item>
+        <item name="android:textColor">@color/default_text</item>
+        <item name="android:subtitle">@color/default_subtitle</item>
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+</resources>
