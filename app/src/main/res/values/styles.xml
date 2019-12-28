@@ -1,15 +1,68 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <!-- Default application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/default_primary</item>
         <item name="colorPrimaryDark">@color/default_primary_dark</item>
         <item name="colorAccent">@color/default_accent</item>
         <item name="android:textColor">@color/default_text</item>
         <item name="android:subtitle">@color/default_subtitle</item>
-        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
+
+
+    <!-- Base style for a title text -->
+    <style name="Title">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Style for title text having android:background="?colorPrimary". -->
+    <style name="Title.OnPrimaryColor">
+        <item name="android:textColor">?android:colorBackground</item>
+    </style>
+
+    <!-- Style for title text on default background. -->
+    <style name="Title.OnDefaultBackground">
+        <item name="android:textColor">?colorPrimary</item>
+    </style>
+
+
+    <!-- Base style for a subtitle text -->
+    <style name="Subtitle">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Style for subtitle text having android:background="?colorPrimary". -->
+    <style name="Subtitle.OnPrimaryColor">
+        <item name="android:textColor">?android:colorBackground</item>
+        <item name="android:alpha">0.7</item>
+    </style>
+
+    <!-- Style for subtitle text on default background. -->
+    <style name="Subtitle.OnDefaultBackground">
+        <item name="android:textColor">?android:subtitle</item>
+    </style>
+
+
+    <!-- Base style for a small label -->
+    <style name="Label">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- Style for a small label having android:background="?colorPrimary". -->
+    <style name="Label.OnPrimaryColor">
+        <item name="android:textColor">?android:colorBackground</item>
+    </style>
+
+    <!-- Style for a small label on default background. -->
+    <style name="Label.OnDefaultBackground">
+        <item name="android:textColor">?colorPrimary</item>
+    </style>
+
 
 </resources>
