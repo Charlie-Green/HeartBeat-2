@@ -6,8 +6,8 @@ import io.reactivex.Observable
 interface MediaControlUI {
     // TODO: Add a renderState method
     fun stopIntent():            Observable<MediaControlAction.Stop>
-    fun replayIntent():          Observable<MediaControlAction.Replay>
     fun seekIntent():            Observable<MediaControlAction.Seek>
+    fun replayIntent():          Observable<MediaControlAction.Replay>
     fun setRateIntent():         Observable<MediaControlAction.SetRate>
     fun setVolumeIntent():       Observable<MediaControlAction.SetVolume>
     fun playPauseIntent():       Observable<MediaControlAction.PlayPause>

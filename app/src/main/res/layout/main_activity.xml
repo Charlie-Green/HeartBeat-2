@@ -15,9 +15,11 @@
         android:layout_height="wrap_content"
         android:background="?colorPrimary" />
 
-    <include layout="@layout/media_control_fragment"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_gravity="bottom" />
+    <fragment
+        android:id="@+id/fragmMediaControl"
+        android:name="by.vadim_churun.individual.heartbeat2.ui.main.control.MediaControlFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -16,8 +16,8 @@ import kotlin.math.roundToInt
 
 
 class MediaControlFragment: DialogFragment(), MediaControlUI {
-    //////////////////////////////////////////////////////////////////////////////////////
-    // HELP:
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // EXTENSION:
 
     private fun SeekBar.progressToMediaPosition()
         = progress.toLong()
@@ -50,15 +50,60 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     }
 
 
-    //////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // LAYOUT:
+
+    private val gestListener = object: GestureDetector.SimpleOnGestureListener() {
+        private var maxTranslation = -1f   // Not initialized
+        private var lastScrollTime = 0L
+
+        override fun onDown(ev: MotionEvent)
+            = true
+
+        override fun onScroll
+        (ev1: MotionEvent, ev2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+            if(maxTranslation < 0f) {
+                val v = this@MediaControlFragment.view!!
+                v.measure(0, 0)
+                val heightToRemain = hlltPositionContainer.bottom
+                maxTranslation = v.measuredHeight.minus(heightToRemain).toFloat()
+            }
+
+            val now = System.currentTimeMillis()
+            if(now - lastScrollTime >= 40L) {
+                lastScrollTime = now
+                val v = this@MediaControlFragment.view!!
+                val wishedTranslation = v.translationY - 1.5f*distanceY
+                v.translationY = Math.max(0f, Math.min(wishedTranslation, maxTranslation))
+            }
+
+            return false
+        }
+    }
+    private val gestDetector by lazy {
+        GestureDetector(super.requireContext(), gestListener)
+    }
+
+    private fun setupBottomSheetBehavior() {
+        super.requireView().setOnTouchListener { _, event ->
+            gestDetector.onTouchEvent(event)
+        }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
     override fun onCreateView
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.media_control_fragment, container, false)
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupBottomSheetBehavior()
+    }
 
-    //////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////
     // MVI INTENTS:
 
     override fun playPauseIntent(): Observable<MediaControlAction.PlayPause>
@@ -96,7 +141,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
 
     override fun setPriorityIntent(): Observable<MediaControlAction.SetPriority> {
         val subj = BehaviorSubject.create<MediaControlAction.SetPriority>()
-        rbPriority.setOnRatingBarChangeListener { rbar, rating, fromUser ->
+        rbPriority.setOnRatingBarChangeListener { _, rating, _ ->
             val priority = rating.roundToInt().toByte()
             subj.onNext(MediaControlAction.SetPriority(priority))
         }
