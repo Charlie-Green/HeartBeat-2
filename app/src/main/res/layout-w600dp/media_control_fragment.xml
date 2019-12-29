@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Layout for .ui.control.MediaControlFragment, width < 600 dp -->
+<!-- Layout for .ui.control.MediaControlFragment, width >= 600 dp -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?colorPrimary"
-    android:padding="@dimen/layout_padding_small"  >
+    android:paddingLeft="@dimen/layout_padding_small"
+    android:paddingTop="@dimen/layout_padding_small"
+    android:paddingRight="@dimen/layout_padding_small" >
 
     <GridLayout
         android:orientation="vertical"
@@ -59,7 +61,6 @@
 
 
     <LinearLayout
-        android:id="@+id/hlltPositionContainer"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

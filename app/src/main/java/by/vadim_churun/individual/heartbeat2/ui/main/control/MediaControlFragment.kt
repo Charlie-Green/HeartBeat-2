@@ -1,12 +1,14 @@
 package by.vadim_churun.individual.heartbeat2.ui.main.control
 
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.*
 import android.widget.SeekBar
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.media.SongsOrder
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.changeEvents
 import io.reactivex.Observable
@@ -53,40 +55,33 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     ////////////////////////////////////////////////////////////////////////////////////////
     // LAYOUT:
 
-    private val gestListener = object: GestureDetector.SimpleOnGestureListener() {
-        private var maxTranslation = -1f   // Not initialized
-        private var lastScrollTime = 0L
+    private fun preventNavBarOverlap() {
+        val display = super.requireActivity().windowManager.defaultDisplay
+        if(display.rotation != Surface.ROTATION_0)
+            return    // The navigation bar doesn't overlap any media controls in this orientation.
 
-        override fun onDown(ev: MotionEvent)
-            = true
-
-        override fun onScroll
-        (ev1: MotionEvent, ev2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
-            if(maxTranslation < 0f) {
-                val v = this@MediaControlFragment.view!!
-                v.measure(0, 0)
-                val heightToRemain = hlltPositionContainer.bottom
-                maxTranslation = v.measuredHeight.minus(heightToRemain).toFloat()
-            }
-
-            val now = System.currentTimeMillis()
-            if(now - lastScrollTime >= 40L) {
-                lastScrollTime = now
-                val v = this@MediaControlFragment.view!!
-                val wishedTranslation = v.translationY - 1.5f*distanceY
-                v.translationY = Math.max(0f, Math.min(wishedTranslation, maxTranslation))
-            }
-
-            return false
+        val res = super.getResources()
+        val idNavHeight = res.getIdentifier("navigation_bar_height", "dimen", "android")
+        val navHeight = if(idNavHeight == 0) {
+            val density = DisplayMetrics().also { display.getMetrics(it) }.density
+            48f.times(density).toInt()   // Typical navigation bar height is 48dp.
+        } else {
+            res.getDimensionPixelSize(idNavHeight)
         }
-    }
-    private val gestDetector by lazy {
-        GestureDetector(super.requireContext(), gestListener)
+
+        val v = super.requireView()
+        v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navHeight)
     }
 
-    private fun setupBottomSheetBehavior() {
-        super.requireView().setOnTouchListener { _, event ->
-            gestDetector.onTouchEvent(event)
+    private fun setPeekHeight() {
+        val v = super.requireView().apply { measure(0, 0) }
+        BottomSheetBehavior.from(v).apply {
+            peekHeight = tvTitle.measuredHeight
+                .plus(tvArtist.measuredHeight)
+                .plus(sbPosition.measuredHeight)
+                .plus(imgvPlayPause.measuredHeight)
+                .plus(v.paddingBottom)
+            state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 
@@ -98,8 +93,10 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.media_control_fragment, container, false)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setupBottomSheetBehavior()
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        preventNavBarOverlap()
+        setPeekHeight()
     }
 
 
