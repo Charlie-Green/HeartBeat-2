@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.media
+package by.vadim_churun.individual.heartbeat2.entity
 
 
 enum class SongsOrder {
