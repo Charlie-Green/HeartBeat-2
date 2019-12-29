@@ -1,19 +1,11 @@
 package by.vadim_churun.individual.heartbeat2.presenter.control
 
 import android.content.Context
-import by.vadim_churun.individual.heartbeat2.R
-import by.vadim_churun.individual.heartbeat2.entity.Song
-import by.vadim_churun.individual.heartbeat2.presenter.common.SongStub
 import io.reactivex.disposables.CompositeDisposable
 
 
 /** MVI Presenter for [MediaControlUI]. **/
 object MediaControlPresenter {
-
-    private fun debugLog(message: String)
-        = android.util.Log.v("MediaControl", message)
-
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // RX:
 
@@ -22,61 +14,61 @@ object MediaControlPresenter {
     private fun subscribePlayPause(context: Context, ui: MediaControlUI)
         = ui.playPauseIntent()
             .doOnNext {
-                debugLog("Play/Pause")
+                // TODO
             }.subscribe()
 
     private fun subscribeStop(context: Context, ui: MediaControlUI)
         = ui.stopIntent()
             .doOnNext {
-                debugLog("Stop")
+                // TODO
             }.subscribe()
 
     private fun subscribeReplay(context: Context, ui: MediaControlUI)
         = ui.replayIntent()
             .doOnNext {
-                debugLog("Replay")
+                // TODO
             }.subscribe()
 
     private fun subscribeSeek(context: Context, ui: MediaControlUI)
         = ui.seekIntent()
             .doOnNext { action ->
-                debugLog("Seek: ${action.position}")
+                // TODO
             }.subscribe()
 
     private fun subscribeSetRate(context: Context, ui: MediaControlUI)
         = ui.setRateIntent()
             .doOnNext { action ->
-                debugLog("Set rate: ${action.rate}")
+                // TODO
             }.subscribe()
 
     private fun subscribeSetVolume(context: Context, ui: MediaControlUI)
         = ui.setVolumeIntent()
             .doOnNext { action ->
-                debugLog("Set volume: ${action.volume}")
+                // TODO
             }.subscribe()
 
     private fun subscribeSetPriority(context: Context, ui: MediaControlUI)
         = ui.setPriorityIntent()
             .doOnNext { action ->
-                debugLog("Set priority: ${action.priority}")
+                // TODO
             }.subscribe()
 
     private fun subscribeSetSongsOrder(context: Context, ui: MediaControlUI)
         = ui.setSongsOrderIntent()
             .doOnNext { action ->
-                debugLog("Set songs order: ${action.order.name}")
+                // TODO
             }.subscribe()
 
     private fun subscribeRequestPrevious(context: Context, ui: MediaControlUI)
         = ui.requestPreviousIntent()
             .doOnNext { action ->
-                debugLog("Previous, please!")
+                // TODO
             }.subscribe()
 
     private fun subscribeRequestNext(context: Context, ui: MediaControlUI)
         = ui.requestNextIntent()
             .doOnNext { action ->
-                debugLog("Next, please!")
+                // TODO
          }.subscribe()
 
 
@@ -110,17 +102,5 @@ object MediaControlPresenter {
         bound = false
         disposable.dispose()
         // TODO: Unbind the service.
-    }
-
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // OTHER:
-
-    fun stubForSong(appContext: Context, song: Song): SongStub {
-        // TODO: The implementation is to be more complicated...
-        return SongStub(
-            song.title,
-            song.artist ?: appContext.getString(R.string.unknown_artist)
-        )
     }
 }

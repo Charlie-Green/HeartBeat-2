@@ -9,8 +9,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.entity.*
+import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.model.state.MediaState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
+import by.vadim_churun.individual.heartbeat2.ui.UiUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.changeEvents
@@ -52,18 +54,6 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
 
     private fun SeekBar.setVolume(volume: Float) {
         progress = volume.times(max).toInt()
-    }
-
-
-    private fun Long.toTimeString(): String {
-        var remain = this
-        val h = remain/3600000L; remain -= h*3600000L
-        val m = remain/60000L; remain -= m*60000L
-        val s = remain/1000L
-        val hs = if(h == 0L) "" else "$h:"
-        val ms = "${m.toString().padStart(2, '0')}:"
-        val ss = "$s".padStart(2, '0')
-        return "$hs$ms$ss"
     }
 
 
@@ -117,13 +107,6 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     override fun onStart() {
         super.onStart()
         MediaControlPresenter.bind(super.requireContext(), this)
-
-        render( MediaState.Playing(
-            object: SongWithSettings("No", "Meghan", "No - Meghan.mp3", "", 1f, 0.5f, 3) {   },
-            8000L,
-            219000L,
-            SongsOrder.SEQUENTIAL
-        ) )
     }
 
     override fun onStop() {
@@ -210,9 +193,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     }
 
 
-    private fun renderSong(song: Song?) {
-        val appContext = super.requireContext().applicationContext
-        val stub = song?.let { MediaControlPresenter.stubForSong(appContext, it) }
+    private fun renderStub(stub: SongStub?) {
         tvTitle.text = stub?.displayTitle ?: ""
         tvArtist.text = stub?.displayArtist ?: ""
     }
@@ -227,14 +208,14 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         sbPosition.isEnabled = true
         sbPosition.setMediaDuration(duration)
         sbPosition.setMediaPosition(position)
-        tvPosition.text = position.toTimeString()
-        tvDuration.text = duration.toTimeString()
+        tvPosition.text = UiUtils.timeString(position)
+        tvDuration.text = UiUtils.timeString(duration)
     }
 
     private fun renderPositionInvalid() {
         sbPosition.progress = 0
         sbPosition.isEnabled = false
-        val s0 = 0L.toTimeString()
+        val s0 = UiUtils.timeString(0L)
         tvPosition.text = s0; tvDuration.text = s0
     }
 
@@ -256,13 +237,13 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         }
     }
 
-    private fun renderErrorDialog(requestedSong: Song) {
+    private fun renderErrorDialog(requestedStub: SongStub) {
         val appContext = super.requireContext().applicationContext
-        val stumb = MediaControlPresenter.stubForSong(appContext, requestedSong)
         AlertDialog.Builder(super.requireContext())
             .setTitle(R.string.error)
-            .setMessage( appContext.getString(R.string.play_failed_message, stumb.displayTitle) )
-            .setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+            .setMessage(
+                appContext.getString(R.string.play_failed_message, requestedStub.displayTitle)
+            ).setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
             .show()
     }
 
@@ -270,29 +251,29 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     override fun render(state: MediaState) {
         when(state) {
             is MediaState.Preparing -> {
-                renderSong(state.song)
+                renderStub(state.stub)
                 renderPositionInvalid()
                 renderPlayPauseButton(false)
             }
 
             is MediaState.Playing -> {
-                renderSong(state.song)
+                renderStub(state.stub)
                 renderSongSettings(state.song)
                 renderPlayPauseButton(true)
                 renderSongsOrder(state.order)
-                renderPosition(state.position, state.duration)
+                renderPosition(state.position, state.song.duration)
             }
 
             is MediaState.Paused -> {
-                renderSong(state.song)
+                renderStub(state.stub)
                 renderSongSettings(state.song)
                 renderPlayPauseButton(false)
                 renderSongsOrder(state.order)
-                renderPosition(state.position, state.duration)
+                renderPosition(state.position, state.song.duration)
             }
 
             is MediaState.Stopped -> {
-                renderSong(state.lastSong)
+                renderStub(state.lastStub)
                 state.lastSong?.also { renderSongSettings(it) }
                 renderPositionInvalid()
                 renderSongsOrder(state.order)
@@ -300,10 +281,11 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
             }
 
             is MediaState.PlayFailed -> {
-                renderSong(state.lastSong)
+                renderStub(state.lastStub)
                 state.lastSong?.also { renderSongSettings(it) }
+                renderPositionInvalid()
                 renderSongsOrder(state.order)
-                renderErrorDialog(state.requestedSong)
+                renderErrorDialog(state.requestedSongStub)
                 state.consumed = true
             }
         }

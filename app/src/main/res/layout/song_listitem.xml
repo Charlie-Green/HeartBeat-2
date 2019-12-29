@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Layout for a listitem managed by ui.main.song.SongsCollectionAdapter. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/imgvArt"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="4dp"
+        android:src="@drawable/song_art_default"
+        android:tint="?android:colorPrimary" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:layout_gravity="center_vertical" >
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Title.OnDefaultBackground"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="Title" />
+
+        <TextView
+            android:id="@+id/tvArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Subtitle.OnDefaultBackground"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="Artist" />
+
+    </LinearLayout>
+
+    <RatingBar
+        android:id="@+id/priorityIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:isIndicator="true"
+        android:progressTint="?colorPrimary"
+        android:rating="1.0"
+        android:numStars="1"
+        android:alpha="0.5" />
+
+    <TextView
+        android:id="@+id/tvDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="4dp"
+        style="@style/LargerLabel.OnDefaultBackground"
+        android:text="00:00" />
+
+</LinearLayout>

@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.presenter.common
+package by.vadim_churun.individual.heartbeat2.model.obj
 
 
 /** Representation of a song on UI,

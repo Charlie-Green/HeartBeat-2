@@ -65,4 +65,20 @@
     </style>
 
 
+    <!-- Base style for a label which is not limited (much) in space -->
+    <style name="LargerLabel">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Style for LargerLabel having android:background="?colorPrimary". -->
+    <style name="LargerLabel.OnPrimaryColor">
+        <item name="android:textColor">?android:colorBackground</item>
+    </style>
+
+    <!-- Style for a LargerLabel on default background. -->
+    <style name="LargerLabel.OnDefaultBackground">
+        <item name="android:textColor">?colorPrimary</item>
+    </style>
+
+
 </resources>
