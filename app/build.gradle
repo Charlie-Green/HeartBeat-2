@@ -47,6 +47,6 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-rxjava2:$room_version"
 
-    implementation project(path: ':entity')
+    implementation project(path: ':shared')
     implementation project(path: ':storage')
 }

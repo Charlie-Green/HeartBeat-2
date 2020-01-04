@@ -9,11 +9,11 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.HeartBeatMainActivity" >
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <fragment
+        android:id="@+id/fragmSongs"
+        android:name="by.vadim_churun.individual.heartbeat2.ui.main.song.SongsCollectionFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?colorPrimary" />
+        android:layout_height="match_parent" />
 
     <fragment
         android:id="@+id/fragmMediaControl"

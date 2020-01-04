@@ -8,7 +8,6 @@ import android.widget.SeekBar
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.R
-import by.vadim_churun.individual.heartbeat2.entity.*
 import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.model.state.MediaState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
@@ -161,9 +160,9 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     }
 
     override fun setSongsOrderIntent(): Observable<MediaControlAction.SetSongsOrder>
-        = imgvSequential.clicks().map { SongsOrder.SEQUENTIAL }
-            .mergeWith(imgvLoop.clicks().map { SongsOrder.LOOP })
-            .mergeWith(imgvShuffle.clicks().map { SongsOrder.SHUFFLE })
+        = imgvSequential.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SEQUENTIAL }
+            .mergeWith(imgvLoop.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.LOOP })
+            .mergeWith(imgvShuffle.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SHUFFLE })
             .map { order -> MediaControlAction.SetSongsOrder(order) }
 
     override fun requestPreviousIntent(): Observable<MediaControlAction.RequestPrevious>
@@ -198,7 +197,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         tvArtist.text = stub?.displayArtist ?: ""
     }
 
-    private fun renderSongSettings(song: SongWithSettings) {
+    private fun renderSongSettings(song: by.vadim_churun.individual.heartbeat2.shared.SongWithSettings) {
         sbRate.setPlaybackRate(song.rate)
         sbVolume.setVolume(song.volume)
         rbPriority.rating = song.priority.toFloat()
@@ -224,11 +223,11 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         imgvPlayPause.setImageResource(iconID)
     }
 
-    private fun renderSongsOrder(order: SongsOrder) {
+    private fun renderSongsOrder(order: by.vadim_churun.individual.heartbeat2.shared.SongsOrder) {
         val idSelectedIcon = when(order) {
-            SongsOrder.SEQUENTIAL -> R.id.imgvSequential
-            SongsOrder.LOOP       -> R.id.imgvLoop
-            SongsOrder.SHUFFLE    -> R.id.imgvShuffle
+            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SEQUENTIAL -> R.id.imgvSequential
+            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.LOOP       -> R.id.imgvLoop
+            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SHUFFLE    -> R.id.imgvShuffle
             else                  -> 0
         }
         for(imgv in listOf(imgvSequential, imgvLoop, imgvShuffle)) {

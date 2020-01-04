@@ -1,19 +1,29 @@
 package by.vadim_churun.individual.heartbeat2.ui.main.song
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.DialogFragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import by.vadim_churun.individual.heartbeat2.R
+import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
-import by.vadim_churun.individual.heartbeat2.presenter.song.SongsCollectionAction
-import by.vadim_churun.individual.heartbeat2.presenter.song.SongsCollectionPresenter
-import by.vadim_churun.individual.heartbeat2.presenter.song.SongsCollectionUI
+import by.vadim_churun.individual.heartbeat2.presenter.song.*
 import io.reactivex.Observable
+import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
 class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // UI:
+
+    private fun displaySongs(songs: SongsList) {
+        recvSongs.layoutManager = recvSongs.layoutManager
+            ?: LinearLayoutManager(super.requireContext())
+        val newAdapter = SongsCollectionAdapter(super.requireContext(), songs)
+        recvSongs.swapAdapter(newAdapter, true)
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
@@ -49,6 +59,6 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
     // MVI RENDER:
 
     override fun render(state: SongsCollectionState) {
-
+        TODO()
     }
 }

@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.entity
+package by.vadim_churun.individual.heartbeat2.shared
 
 
 enum class SongsOrder {

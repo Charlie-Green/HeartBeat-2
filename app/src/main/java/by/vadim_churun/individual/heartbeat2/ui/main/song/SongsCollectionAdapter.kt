@@ -2,6 +2,7 @@ package by.vadim_churun.individual.heartbeat2.ui.main.song
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.TypedValue
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import by.vadim_churun.individual.heartbeat2.R
@@ -17,6 +18,11 @@ class SongsCollectionAdapter(
     ////////////////////////////////////////////////////////////////////////////////////////
     // ARTS
 
+    private val primaryColor by lazy {
+        TypedValue().also {
+            context.theme.resolveAttribute(android.R.attr.colorPrimary, it, true)
+        }.data
+    }
     private val arts = MutableList<Bitmap?>(songs.size) { null }
 
     fun applySongArt(songID: Int, art: Bitmap) {
@@ -36,6 +42,7 @@ class SongsCollectionAdapter(
         val tvDuration        = itemView.tvDuration
     }
 
+
     override fun getItemCount(): Int
         = songs.size
 
@@ -50,6 +57,14 @@ class SongsCollectionAdapter(
         holder.tvArtist.text = entry.stub.displayArtist
         holder.tvDuration.text = UiUtils.timeString(entry.song.duration)
         holder.priorityIndicator.alpha = 0.2f*entry.song.priority
-        arts[position]?.also { holder.imgvArt.setImageBitmap(it) }
+
+        arts[position]?.also {
+            holder.imgvArt.setImageBitmap(it)
+        } ?: holder.imgvArt.apply {
+            setImageResource(R.drawable.song_art_default)
+            val noArtDrawable = this.drawable!!
+            noArtDrawable.setTint(primaryColor)
+            setImageDrawable(noArtDrawable)
+        }
     }
 }

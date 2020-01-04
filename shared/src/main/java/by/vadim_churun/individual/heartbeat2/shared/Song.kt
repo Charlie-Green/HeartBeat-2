@@ -1,8 +1,9 @@
-package by.vadim_churun.individual.heartbeat2.entity
+
+package by.vadim_churun.individual.heartbeat2.shared
 
 
 /** Represents a song by itself (not in playlist or any other context). **/
-abstract class Song(
+open class Song(
     val ID: Int,
     val title: String,
     val artist: String?,

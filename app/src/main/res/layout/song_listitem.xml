@@ -13,8 +13,7 @@
         android:layout_height="36dp"
         android:layout_gravity="center_vertical"
         android:layout_margin="4dp"
-        android:src="@drawable/song_art_default"
-        android:tint="?android:colorPrimary" />
+        android:src="@drawable/song_art_default" />
 
     <LinearLayout
         android:orientation="vertical"
