@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:rowCount="2"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_gravity="fill_horizontal"
+        android:layout_width="0dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        style="@style/TextAppearance.Compat.Notification.Title"
+        android:textColor="@color/media_service_notif_primary"
+        android:text="Title" />
+
+    <TextView
+        android:id="@+id/tvArtist"
+        android:layout_gravity="fill_horizontal"
+        android:layout_width="0dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        style="@style/TextAppearance.Compat.Notification"
+        android:textColor="@color/media_service_notif_primary"
+        android:alpha="0.6"
+        android:text="Artist" />
+
+
+    <ImageView
+        android:id="@+id/imgvPrevious"
+        android:layout_width="@dimen/media_control_button_size"
+        android:layout_gravity="center_vertical"
+        android:layout_rowSpan="2"
+        android:layout_marginStart="6dp"
+        android:src="@drawable/ic_previous"
+        android:tint="@color/media_service_notif_primary" />
+
+    <ImageView
+        android:id="@+id/imgvPlayPause"
+        android:layout_width="@dimen/media_control_button_size"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="6dp"
+        android:layout_rowSpan="2"
+        android:src="@drawable/ic_play"
+        android:tint="@color/media_service_notif_primary" />
+
+    <ImageView
+        android:id="@+id/imgvNext"
+        android:layout_width="@dimen/media_control_button_size"
+        android:layout_gravity="center_vertical"
+        android:layout_rowSpan="2"
+        android:src="@drawable/ic_next"
+        android:tint="@color/media_service_notif_primary" />
+
+</GridLayout>

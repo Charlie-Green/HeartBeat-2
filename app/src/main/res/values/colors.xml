@@ -8,4 +8,5 @@
 
     <color name="media_control_button_unselected">?android:colorBackground</color>
     <color name="media_control_button_selected">?colorAccent</color>
+    <color name="media_service_notif_primary">@color/default_primary</color>
 </resources>

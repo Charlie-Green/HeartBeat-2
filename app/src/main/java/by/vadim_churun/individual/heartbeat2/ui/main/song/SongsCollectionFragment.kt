@@ -46,19 +46,19 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
     // MVI INTENTS:
 
     override fun playIntent(): Observable<SongsCollectionAction.Play>
-        = TODO()
+        = SongsCollectionSubjects.PLAY
 
     override fun decodeArtIntent(): Observable<SongsCollectionAction.DecodeArt>
-        = TODO()
+        = SongsCollectionSubjects.DECODE_ART
 
     override fun setPriorityIntent(): Observable<SongsCollectionAction.SetPriority>
-        = TODO()
+        = SongsCollectionSubjects.SET_PRIORITY
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI RENDER:
 
     override fun render(state: SongsCollectionState) {
-        TODO()
+        // TODO
     }
 }

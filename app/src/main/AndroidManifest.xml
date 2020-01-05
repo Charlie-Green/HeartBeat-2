@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="by.vadim_churun.individual.heartbeat2">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_app"
@@ -9,13 +11,22 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity android:name=".ui.main.HeartBeatMainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".service.HeartBeatMediaService">
+            <intent-filter>
+                <action android:name="by.vadim_churun.individual.heartbeat2.action.PPAUSE" />
+                <action android:name="by.vadim_churun.individual.heartbeat2.action.PREV" />
+                <action android:name="by.vadim_churun.individual.heartbeat2.action.NEXT" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>
