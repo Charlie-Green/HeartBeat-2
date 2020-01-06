@@ -1,6 +1,7 @@
 package by.vadim_churun.individual.heartbeat2.ui.main.song
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -59,6 +60,19 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
     // MVI RENDER:
 
     override fun render(state: SongsCollectionState) {
-        // TODO
+        when(state) {
+            is SongsCollectionState.CollectionPrepared -> {
+                displaySongs(state.songs)
+            }
+
+            is SongsCollectionState.ArtDecoded -> {
+                val adapter = recvSongs.adapter as SongsCollectionAdapter?
+                adapter?.applySongArt(state.songID, state.art)
+            }
+
+            is SongsCollectionState.ArtDecodeFailed -> {
+                Log.w("HbArts", "Failed to decode art for song ID ${state.songID}")
+            }
+        }
     }
 }

@@ -8,9 +8,11 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import by.vadim_churun.individual.heartbeat2.R
+import javax.inject.Inject
 
 
-internal object MediaNotificationFactory {
+class MediaNotificationFactory @Inject constructor(
+    val appContext: Context, val actions: MediaActions ) {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // PENDING INTENT:
 
@@ -19,11 +21,11 @@ internal object MediaNotificationFactory {
     private val REQCODE_NEXT       = 51
 
     private fun createPendingIntent
-    (context: Context, requestCode: Int, action: String): PendingIntent {
-        val int = Intent(context, HeartBeatMediaService::class.java)
+    (requestCode: Int, action: String): PendingIntent {
+        val int = Intent(appContext, HeartBeatMediaService::class.java)
         int.action = action
         return PendingIntent.getService(
-            context, requestCode, int, PendingIntent.FLAG_UPDATE_CURRENT )
+            appContext, requestCode, int, PendingIntent.FLAG_UPDATE_CURRENT )
     }
 
 
@@ -33,10 +35,10 @@ internal object MediaNotificationFactory {
     private val CHANNEL_ID = "mediaNotif"
     val notificationID = 105
 
-    fun createNotification(appContext: Context): Notification {
-        val notifMan = ContextCompat.getSystemService(appContext, NotificationManager::class.java)!!
-
+    fun createNotification(): Notification {
         if(Build.VERSION.SDK_INT >= 26) {
+            val notifMan = ContextCompat.getSystemService(
+                appContext, NotificationManager::class.java )!!
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 appContext.getString(R.string.media_service_notifchannel_name),
@@ -46,14 +48,11 @@ internal object MediaNotificationFactory {
         }
 
         val contentViews = RemoteViews(appContext.packageName, R.layout.media_service_notification)
-        var pint = createPendingIntent(
-            appContext, REQCODE_PREVIOUS, MediaActions.previous(appContext) )
+        var pint = createPendingIntent(REQCODE_PREVIOUS, actions.previous())
         contentViews.setOnClickPendingIntent(R.id.imgvPrevious, pint)
-        pint = createPendingIntent(
-            appContext, REQCODE_PLAY_PAUSE, MediaActions.playpause(appContext) )
+        pint = createPendingIntent(REQCODE_PLAY_PAUSE, actions.playpause())
         contentViews.setOnClickPendingIntent(R.id.imgvPlayPause, pint )
-        pint = createPendingIntent(
-            appContext, REQCODE_NEXT, MediaActions.next(appContext) )
+        pint = createPendingIntent(REQCODE_NEXT, actions.next())
         contentViews.setOnClickPendingIntent(R.id.imgvNext, pint )
 
         return NotificationCompat

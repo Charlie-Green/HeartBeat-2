@@ -7,6 +7,7 @@ import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
+import by.vadim_churun.individual.heartbeat2.presenter.song.SongsCollectionAction
 import by.vadim_churun.individual.heartbeat2.ui.UiUtils
 import kotlinx.android.synthetic.main.song_listitem.view.*
 
@@ -65,6 +66,14 @@ class SongsCollectionAdapter(
             val noArtDrawable = this.drawable!!
             noArtDrawable.setTint(primaryColor)
             setImageDrawable(noArtDrawable)
+        }.also {
+            val action = SongsCollectionAction.DecodeArt(entry.song)
+            SongsCollectionSubjects.DECODE_ART.onNext(action)
+        }
+
+        holder.itemView.setOnClickListener {
+            val action = SongsCollectionAction.Play(entry.song)
+            SongsCollectionSubjects.PLAY.onNext(action)
         }
     }
 }

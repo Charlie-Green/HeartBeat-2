@@ -1,10 +1,8 @@
 package by.vadim_churun.individual.heartbeat2.service
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.IBinder
+import android.os.RemoteException
 
 
 /** A help class to safely bind/unbind [HeartBeatMediaService]. **/
@@ -33,5 +31,17 @@ class MediaServiceBinder {
         if(service == null) return
         service = null
         appContext.unbindService(connection)
+    }
+
+    /** Attempts to execute the given callback on a [HeartBeatMediaService] instance.
+      * @return whether interaction was successful. **/
+    fun interact(action: (service: HeartBeatMediaService) -> Unit): Boolean {
+        val mService = service ?: return false
+        try {
+            action(mService)
+            return true
+        } catch(exc: RemoteException) {
+            return false
+        }
     }
 }
