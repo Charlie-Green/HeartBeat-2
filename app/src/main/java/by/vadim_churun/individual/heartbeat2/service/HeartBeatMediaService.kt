@@ -75,16 +75,19 @@ class HeartBeatMediaService: Service() {
     }
 
 
+    fun observableSongsCollectionState()
+        = songsRepo.observableSongsCollectionState()
+
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // RX:
 
     private val disposable = CompositeDisposable()
 
+    // This Observable needs a subscriber independent from UI
+    // for its functionality to work even if the app is in background.
     private fun subscribeSongs()
-        = songsRepo.observableSongs()
-            .doOnNext { songs ->
-                // TODO
-            }.subscribe()
+        = songsRepo.observableSongsCollectionState().subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +125,7 @@ class HeartBeatMediaService: Service() {
     }
 
     override fun onDestroy() {
+        songsRepo.dispose()
         disposable.clear()
         player.release()
     }

@@ -1,11 +1,14 @@
 package by.vadim_churun.individual.heartbeat2.shared
 
 import android.graphics.Bitmap
-import by.vadim_churun.individual.heartbeat2.shared.Song
 
 
 /** An interface for any class which can provide a list of songs from some source. **/
 interface SongsSource {
+    /** How often synchronization with this source should occur, in seconds.
+      * The time taken by sync itself should not be encountered. **/
+    val recommendedSyncPeriod: Int
+
     /** The full list of Android permissions needed by this source to work. **/
     val permissions: List<String>
 

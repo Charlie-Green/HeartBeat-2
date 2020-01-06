@@ -57,6 +57,9 @@ class ExternalStorageSongsSource(val resolver: ContentResolver):
     ////////////////////////////////////////////////////////////////////////////////////////
     // IMPLEMENTATION:
 
+    override val recommendedSyncPeriod: Int
+        get() = 9    // Synchronize each 9 seconds.
+
     override val permissions: List<String>
         get() = listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
 

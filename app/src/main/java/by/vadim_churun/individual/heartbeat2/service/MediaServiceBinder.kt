@@ -8,14 +8,17 @@ import android.os.RemoteException
 /** A help class to safely bind/unbind [HeartBeatMediaService]. **/
 class MediaServiceBinder {
     private var service: HeartBeatMediaService? = null
+    private var onConnect: ((service: HeartBeatMediaService) -> Unit)? = null
 
     private val connection = object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             service = (binder as HeartBeatMediaService.MediaBinder).service
+            onConnect?.also { interact(it) }
+            onConnect = null
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
-            service = null
+            service = null; onConnect = null
         }
     }
 
@@ -27,7 +30,13 @@ class MediaServiceBinder {
         appContext.bindService(int, connection, Context.BIND_AUTO_CREATE)
     }
 
+    fun bind(appContext: Context, onConnected: (service: HeartBeatMediaService) -> Unit) {
+        this.onConnect = onConnected
+        bind(appContext)
+    }
+
     fun unbind(appContext: Context) {
+        onConnect = null
         if(service == null) return
         service = null
         appContext.unbindService(connection)

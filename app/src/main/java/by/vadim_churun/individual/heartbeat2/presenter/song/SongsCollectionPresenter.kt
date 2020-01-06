@@ -1,6 +1,7 @@
 package by.vadim_churun.individual.heartbeat2.presenter.song
 
 import android.content.Context
+import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.service.MediaServiceBinder
 import io.reactivex.disposables.CompositeDisposable
 
@@ -28,12 +29,20 @@ object SongsCollectionPresenter {
                 // TODO
             }.subscribe()
 
+    private fun subscribeState(service: HeartBeatMediaService, ui: SongsCollectionUI)
+        = service.observableSongsCollectionState()
+            .doOnNext { state ->
+                ui.render(state)
+            }.subscribe()
+
 
     fun bind(context: Context, ui: SongsCollectionUI) {
         if(bound) return
         bound = true
 
-        serviceBinder.bind(context.applicationContext)
+        serviceBinder.bind(context.applicationContext) { service ->
+            disposable.add(subscribeState(service, ui))
+        }
         disposable.addAll(
             subscribePlay(ui),
             subscribeDecodeArt(ui),
