@@ -5,28 +5,45 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.HeartBeatApplication
+import by.vadim_churun.individual.heartbeat2.model.logic.SongsRepository
+import by.vadim_churun.individual.heartbeat2.player.HeartBeatPlayer
 import by.vadim_churun.individual.heartbeat2.shared.*
+import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
 
 class HeartBeatMediaService: Service() {
     /////////////////////////////////////////////////////////////////////////////////////////
+    // DEPENDENCIES:
+
+    @Inject lateinit var actions: MediaActions
+    @Inject lateinit var notifFact: MediaNotificationFactory
+    @Inject lateinit var player: HeartBeatPlayer
+    @Inject lateinit var songsRepo: SongsRepository
+
+    private fun inject() {
+        val app = super.getApplication() as HeartBeatApplication
+        app.diComponent.inject(this)
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
     fun play(song: Song) {
-        // TODO
+        player.play(song)
     }
 
     fun playOrPause() {
-        // TODO
+        player.pauseOrResume()
     }
 
     fun replayCurrentSong() {
-        // TODO
+        player.position = 0L
     }
 
     fun stopPlayback() {
-        // TODO
+        player.release()
     }
 
     fun playPrevious() {
@@ -38,15 +55,15 @@ class HeartBeatMediaService: Service() {
     }
 
     fun seek(position: Long) {
-        // TODO
+        player.position = position
     }
 
     fun setPlaybackRate(rate: Float) {
-        // TODO
+        player.rate = rate
     }
 
     fun setVolume(volume: Float) {
-        // TODO
+        player.volume = volume
     }
 
     fun setSongsOrder(order: SongsOrder) {
@@ -56,6 +73,18 @@ class HeartBeatMediaService: Service() {
     fun setCurrentSongPriority(priority: Byte) {
         // TODO
     }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // RX:
+
+    private val disposable = CompositeDisposable()
+
+    private fun subscribeSongs()
+        = songsRepo.observableSongs()
+            .doOnNext { songs ->
+                // TODO
+            }.subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -72,27 +101,15 @@ class HeartBeatMediaService: Service() {
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
-    // DEPENDENCIES:
-
-    @Inject lateinit var actions: MediaActions
-    @Inject lateinit var notifFact: MediaNotificationFactory
-
-    private fun inject() {
-        val app = super.getApplication() as HeartBeatApplication
-        app.diComponent.inject(this)
-    }
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
     override fun onCreate() {
         inject()
         super.startForeground(notifFact.notificationID, notifFact.createNotification())
+        disposable.add(subscribeSongs())
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        android.util.Log.v("Service", "Start: ${intent.action}")
         intent.action?.also {
             actions.recognize(
                 action = it,
@@ -105,6 +122,7 @@ class HeartBeatMediaService: Service() {
     }
 
     override fun onDestroy() {
-        // TODO: Release player.
+        disposable.clear()
+        player.release()
     }
 }

@@ -30,6 +30,7 @@ class ExternalStorageSongsSource(val resolver: ContentResolver):
     private val COLUMN_NAME_TITLE = MediaStore.Audio.Media.TITLE
     private val COLUMN_NAME_ARTIST = MediaStore.Audio.Media.ARTIST
     private val COLUMN_NAME_FILENAME = MediaStore.Audio.Media.DATA          // (1)
+    private val COLUMN_NAME_IS_SONG = MediaStore.Audio.Media.IS_MUSIC
     // (1) Use of the deprecated field is forced by the requirement
     // to provide filename for any song it's possible for.
 
@@ -77,8 +78,8 @@ class ExternalStorageSongsSource(val resolver: ContentResolver):
                 COLUMN_NAME_ARTIST,
                 COLUMN_NAME_FILENAME
             ),
-            /* selection */  null,
-            /* args */       null,
+            /* selection */  "${COLUMN_NAME_IS_SONG}=?",
+            /* args */       arrayOf("1"),
             /* order */      null
         )!!.use { curs ->
             while(curs.moveToNext()) {
