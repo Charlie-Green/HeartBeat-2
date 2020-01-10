@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.model.logic
+package by.vadim_churun.individual.heartbeat2.model.logic.internal
 
 import by.vadim_churun.individual.heartbeat2.db.entity.SongEntity
 import by.vadim_churun.individual.heartbeat2.shared.SongsSource
@@ -16,7 +16,7 @@ class SyncManager @Inject constructor(
         val songEntities = fetch().map { song ->
             SongEntity.fromSong(song, this.javaClass)
         }
-        dbMan.addOrUpdateSongs(songEntities)
+        dbMan.updateSource(this.javaClass, songEntities)
     }
 
     fun syncIfTime() {

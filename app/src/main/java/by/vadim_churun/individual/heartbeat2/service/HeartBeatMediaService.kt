@@ -5,8 +5,7 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.HeartBeatApplication
-import by.vadim_churun.individual.heartbeat2.model.logic.SongsRepository
-import by.vadim_churun.individual.heartbeat2.player.HeartBeatPlayer
+import by.vadim_churun.individual.heartbeat2.model.logic.*
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
@@ -18,8 +17,8 @@ class HeartBeatMediaService: Service() {
 
     @Inject lateinit var actions: MediaActions
     @Inject lateinit var notifFact: MediaNotificationFactory
-    @Inject lateinit var player: HeartBeatPlayer
-    @Inject lateinit var songsRepo: SongsRepository
+    @Inject lateinit var songsRepo: SongsCollectionRepository
+    @Inject lateinit var playerRepo: PlayerRepository
 
     private fun inject() {
         val app = super.getApplication() as HeartBeatApplication
@@ -30,20 +29,20 @@ class HeartBeatMediaService: Service() {
     /////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
-    fun play(song: Song) {
-        player.play(song)
+    fun play(song: SongWithSettings) {
+        playerRepo.play(song)
     }
 
     fun playOrPause() {
-        player.pauseOrResume()
+        playerRepo.playOrPause()
     }
 
     fun replayCurrentSong() {
-        player.position = 0L
+        playerRepo.replay()
     }
 
     fun stopPlayback() {
-        player.release()
+        playerRepo.stop()
     }
 
     fun playPrevious() {
@@ -55,18 +54,22 @@ class HeartBeatMediaService: Service() {
     }
 
     fun seek(position: Long) {
-        player.position = position
+        playerRepo.seek(position)
     }
 
     fun setPlaybackRate(rate: Float) {
-        player.rate = rate
+        playerRepo.setPlaybackRate(rate)
     }
 
     fun setVolume(volume: Float) {
-        player.volume = volume
+        playerRepo.setVolume(volume)
     }
 
     fun setSongsOrder(order: SongsOrder) {
+        // TODO
+    }
+
+    fun setSongPriority(songID: Int, priority: Byte) {
         // TODO
     }
 
@@ -74,9 +77,16 @@ class HeartBeatMediaService: Service() {
         // TODO
     }
 
+    fun requestArtDecode(song: Song) {
+        // TODO
+    }
+
 
     fun observableSongsCollectionState()
         = songsRepo.observableSongsCollectionState()
+
+    fun observablePlaybackState()
+        = playerRepo.stateObservable()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -127,6 +137,6 @@ class HeartBeatMediaService: Service() {
     override fun onDestroy() {
         songsRepo.dispose()
         disposable.clear()
-        player.release()
+        playerRepo.stop()
     }
 }

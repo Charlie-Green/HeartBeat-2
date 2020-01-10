@@ -1,8 +1,9 @@
-package by.vadim_churun.individual.heartbeat2.model.logic
+package by.vadim_churun.individual.heartbeat2.model.logic.internal
 
 import android.content.Context
 import by.vadim_churun.individual.heartbeat2.db.HeartBeatDatabase
 import by.vadim_churun.individual.heartbeat2.db.entity.SongEntity
+import by.vadim_churun.individual.heartbeat2.shared.SongsSource
 import javax.inject.Inject
 
 
@@ -14,6 +15,6 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
     fun observableSongs()
         = this.songsDAO.getRx()
 
-    fun addOrUpdateSongs(songs: List<SongEntity>)
-        = this.songsDAO.addOrUpdate(songs)
+    fun updateSource(sourceClass: Class<out SongsSource>, newSongs: List<SongEntity>)
+        = this.songsDAO.updateSource(sourceClass, newSongs)
 }

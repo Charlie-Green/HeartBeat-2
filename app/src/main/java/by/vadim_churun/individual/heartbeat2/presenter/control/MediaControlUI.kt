@@ -1,6 +1,6 @@
 package by.vadim_churun.individual.heartbeat2.presenter.control
 
-import by.vadim_churun.individual.heartbeat2.model.state.MediaState
+import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import io.reactivex.Observable
 
 
@@ -15,5 +15,5 @@ interface MediaControlUI {
     fun setPriorityIntent():     Observable<MediaControlAction.SetPriority>
     fun setSongsOrderIntent():   Observable<MediaControlAction.SetSongsOrder>
     fun requestPreviousIntent(): Observable<MediaControlAction.RequestPrevious>
-    fun render(state: MediaState)
+    fun render(state: PlaybackState)
 }

@@ -31,8 +31,8 @@ class ExternalStorageSongsSource(val resolver: ContentResolver):
     private val COLUMN_NAME_ARTIST = MediaStore.Audio.Media.ARTIST
     private val COLUMN_NAME_FILENAME = MediaStore.Audio.Media.DATA          // (1)
     private val COLUMN_NAME_IS_SONG = MediaStore.Audio.Media.IS_MUSIC
-    // (1) Use of the deprecated field is forced by the requirement
-    // to provide filename for any song it's possible for.
+    // (1) Use of the deprecated field is needed so that filename can be displayed to the user.
+    //     It's not going to be used for playback.
 
     private val Cursor.ID
         get() = getInt( getColumnIndex(COLUMN_NAME_ID) )

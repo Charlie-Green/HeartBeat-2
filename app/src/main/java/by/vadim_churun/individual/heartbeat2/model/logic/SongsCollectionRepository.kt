@@ -1,5 +1,7 @@
 package by.vadim_churun.individual.heartbeat2.model.logic
 
+import by.vadim_churun.individual.heartbeat2.model.logic.internal.*
+import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
 import io.reactivex.Observable
@@ -10,12 +12,12 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
-/** One of the top-level classes of MVI's "model" layer,
-  * the one which is for a collection of songs. **/
-class SongsRepository @Inject constructor(
+/** One of the highest level classes of MVI's "model" layer,
+  * the one which manages current collection of songs. **/
+class SongsCollectionRepository @Inject constructor(
     private val dbMan: DatabaseManager,
     private val syncMan: SyncManager,
-    private val stateMan: StatesManager
+    private val stubMan: SongStubsManager
 ) {
     //////////////////////////////////////////////////////////////////////////////////////////
     // INTERNAL:
@@ -57,7 +59,10 @@ class SongsRepository @Inject constructor(
             }.doOnNext { songs ->
                 // TODO: Set the new songs collection to SongsCollectionManager.
             }.map { songs ->
-                stateMan.songsCollectionPrepared(songs)
+                val songsList = SongsList.from(songs) { song ->
+                    stubMan.stubFrom(song)
+                }
+                SongsCollectionState.CollectionPrepared(songsList)
             }.observeOn(AndroidSchedulers.mainThread())
 
 

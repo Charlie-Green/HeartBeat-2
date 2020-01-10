@@ -5,6 +5,12 @@ import by.vadim_churun.individual.heartbeat2.shared.Song
 
 /** This interface is used to abstractiate usage of player from its implementation. **/
 interface HeartBeatPlayer {
+    /** Whether a song is currently playing. **/
+    val isPlaying: Boolean
+
+    /** Whether the player is in released state. **/
+    val isReleased: Boolean
+
     /** Playback position in millisecond.
       * If the player is released, the getter returns a negative number. **/
     var position: Long

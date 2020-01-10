@@ -9,12 +9,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
-import by.vadim_churun.individual.heartbeat2.model.state.MediaState
+import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
+import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
 import by.vadim_churun.individual.heartbeat2.ui.UiUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
-import com.jakewharton.rxbinding3.widget.changeEvents
+import com.jakewharton.rxbinding3.widget.userChanges
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.media_control_fragment.*
@@ -24,6 +25,8 @@ import kotlin.math.roundToInt
 class MediaControlFragment: DialogFragment(), MediaControlUI {
     ////////////////////////////////////////////////////////////////////////////////////////
     // EXTENSION:
+
+    private var lastDuration = -1L
 
     private fun SeekBar.progressToMediaPosition()
         = progress.toLong()
@@ -130,23 +133,23 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
             .map { MediaControlAction.Stop }
 
     override fun seekIntent(): Observable<MediaControlAction.Seek>
-        = sbPosition.changeEvents()
+        = sbPosition.userChanges()
             .map { event ->
-                val position = event.view.progressToMediaPosition()
+                val position = sbPosition.progressToMediaPosition()
                 MediaControlAction.Seek(position)
             }
 
     override fun setRateIntent(): Observable<MediaControlAction.SetRate>
-        = sbRate.changeEvents()
+        = sbRate.userChanges()
             .map { event ->
-                val rate = event.view.progressToPlaybackRate()
+                val rate = sbRate.progressToPlaybackRate()
                 MediaControlAction.SetRate(rate)
             }
 
     override fun setVolumeIntent(): Observable<MediaControlAction.SetVolume>
-        = sbVolume.changeEvents()
+        = sbVolume.userChanges()
             .map { event ->
-                val volume = event.view.progressToVolume()
+                val volume = sbVolume.progressToVolume()
                 MediaControlAction.SetVolume(volume)
             }
 
@@ -197,10 +200,13 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         tvArtist.text = stub?.displayArtist ?: ""
     }
 
-    private fun renderSongSettings(song: by.vadim_churun.individual.heartbeat2.shared.SongWithSettings) {
+    private fun renderSongSettings(song: SongWithSettings) {
         sbRate.setPlaybackRate(song.rate)
         sbVolume.setVolume(song.volume)
         rbPriority.rating = song.priority.toFloat()
+        tvRate.text = "x%.2f".format(song.rate)
+        tvVolume.text = "${song.volume.times(100f).toInt()}%"
+
     }
 
     private fun renderPosition(position: Long, duration: Long) {
@@ -247,15 +253,15 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     }
 
 
-    override fun render(state: MediaState) {
+    override fun render(state: PlaybackState) {
         when(state) {
-            is MediaState.Preparing -> {
+            is PlaybackState.Preparing -> {
                 renderStub(state.stub)
                 renderPositionInvalid()
                 renderPlayPauseButton(false)
             }
 
-            is MediaState.Playing -> {
+            is PlaybackState.Playing -> {
                 renderStub(state.stub)
                 renderSongSettings(state.song)
                 renderPlayPauseButton(true)
@@ -263,7 +269,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
                 renderPosition(state.position, state.song.duration)
             }
 
-            is MediaState.Paused -> {
+            is PlaybackState.Paused -> {
                 renderStub(state.stub)
                 renderSongSettings(state.song)
                 renderPlayPauseButton(false)
@@ -271,7 +277,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
                 renderPosition(state.position, state.song.duration)
             }
 
-            is MediaState.Stopped -> {
+            is PlaybackState.Stopped -> {
                 renderStub(state.lastStub)
                 state.lastSong?.also { renderSongSettings(it) }
                 renderPositionInvalid()
@@ -279,7 +285,7 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
                 renderPlayPauseButton(false)
             }
 
-            is MediaState.PlayFailed -> {
+            is PlaybackState.PlayFailed -> {
                 renderStub(state.lastStub)
                 state.lastSong?.also { renderSongSettings(it) }
                 renderPositionInvalid()

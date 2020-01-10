@@ -2,7 +2,7 @@ package by.vadim_churun.individual.heartbeat2.presenter.control
 
 import android.content.Context
 import by.vadim_churun.individual.heartbeat2.presenter.PresenterUtils
-import by.vadim_churun.individual.heartbeat2.service.MediaServiceBinder
+import by.vadim_churun.individual.heartbeat2.service.*
 import io.reactivex.disposables.CompositeDisposable
 
 
@@ -93,6 +93,12 @@ object MediaControlPresenter {
                 }
          }.subscribe()
 
+    private fun subscribeState(service: HeartBeatMediaService, ui: MediaControlUI)
+        = service.observablePlaybackState()
+            .doOnNext { state ->
+                ui.render(state)
+            }.subscribe()
+
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // BIND/UNBIND:
@@ -105,7 +111,9 @@ object MediaControlPresenter {
         if(bound) return
         bound = true
 
-        mediaBinder.bind(context.applicationContext)
+        mediaBinder.bind(context.applicationContext) { service ->
+            disposable.add(subscribeState(service, ui))
+        }
         disposable.addAll(
             subscribeStop(ui),
             subscribeSeek(ui),
