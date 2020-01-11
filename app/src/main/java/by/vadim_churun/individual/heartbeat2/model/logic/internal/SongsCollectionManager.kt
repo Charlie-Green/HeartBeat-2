@@ -1,15 +1,19 @@
 package by.vadim_churun.individual.heartbeat2.model.logic.internal
 
-import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
-import by.vadim_churun.individual.heartbeat2.shared.SongsOrder
+import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
+import by.vadim_churun.individual.heartbeat2.shared.*
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
-/** Keeps current collection of songs, and defines which song is the "preivous"
+/** Keeps current collection of songs, and defines which song is the "previous"
   * and which one is the "next" according to current [SongsOrder]. **/
-class SongsCollectionManager {
+@Singleton
+class SongsCollectionManager @Inject constructor(
+    private val shuffler: SongsShuffler ) {
     /////////////////////////////////////////////////////////////////////////////////////////
     // ASYNC:
 
@@ -21,13 +25,10 @@ class SongsCollectionManager {
             throw IllegalStateException("${this.javaClass.simpleName} has been released")
     }
 
-    private fun prepareShuffler(collection: List<SongWithSettings>) {
+    private fun prepareShuffler(collection: SongsList) {
         assertNotReleased()
         prepareFuture = preparator.submit {
-            if(android.os.Looper.myLooper() == android.os.Looper.getMainLooper())
-                throw Exception("Preparing on main thread")
-            android.util.Log.v("HbSongsCollection", "Preparing")
-            TODO()
+            shuffler.prepare(collection)
         }
     }
 
@@ -36,34 +37,24 @@ class SongsCollectionManager {
         prepareFuture?.get()
     }
 
-    fun release() {
+    fun dispose() {
         preparator.shutdown()
         prepareFuture = null
     }
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
-    // HISTORY:
-
-    private class HistoryEntry(
-        val song: SongWithSettings,
-        val index: Int
-    )
-
-    private val history = Stack<HistoryEntry>()
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
-    private var mCollection: List<SongWithSettings>? = null
-    var collection: List<SongWithSettings>?
+    private val history = Stack<SongWithSettings>()
+
+    private var mCollection: SongsList? = null
+    var collection: SongsList?
         get() = mCollection
         set(value) {
-            val newCollection = value?.let { if(it.isEmpty()) null else it }
+            val newCollection = value?.let { if(it.size == 0) null else it }
             newCollection?.also { prepareShuffler(it) }
             mCollection = newCollection
-            history.clear()
         }
 
     private var mOrder = SongsOrder.SEQUENTIAL
@@ -74,50 +65,44 @@ class SongsCollectionManager {
         }
 
 
+    val previous: SongWithSettings?
+        get() {
+            if(history.size < 2) {
+                val songs = mCollection
+                if(songs == null || songs.size < 2 || history.empty())
+                    return null
 
-    fun previous(): SongWithSettings? {
-        if(history.size < 2) {
-            val songs = mCollection
-            if(songs == null || songs.size < 2 || history.empty())
-                return null  // Nothing we can do here.
-
-            // Return the previous song in the list.
-            val curIndex = history.pop().index
-            val newIndex = curIndex.dec() % songs.size
-            return songs[newIndex].also {
-                history.push( HistoryEntry(it, newIndex) )
+                val curIndex = songs.indexOf(history.pop().ID) ?: return null
+                val newIndex =
+                    if(curIndex == 0) songs.size-1 else curIndex.dec() % songs.size
+                return songs[newIndex].song.also { history.push(it) }
             }
-        }
 
-        // Return the previous song in the history.
-        history.pop()  // Pop the current song.
-        return history.peek().song
+            // Return the previous song in the history.
+            history.pop()  // Pop the current song.
+            return history.peek()
     }
 
-    fun next(): SongWithSettings? {
-        val songs = mCollection ?: return null
-        return when(mOrder) {
-            SongsOrder.SEQUENTIAL -> {
-                val curIndex = if(history.empty()) -1 else history.peek().index
-                val newIndex = curIndex.inc() % songs.size
-                HistoryEntry(songs[newIndex], newIndex)
-            }
+    val next: SongWithSettings?
+        get() {
+            val songs = mCollection ?: return null
+            return when(mOrder) {
+                SongsOrder.SEQUENTIAL, SongsOrder.LOOP -> {
+                    val curIndex =
+                        if(history.empty()) -1
+                        else songs.indexOf(history.peek().ID) ?: -1
+                    val newIndex = curIndex.inc() % songs.size
+                    songs[newIndex].song
+                }
 
-            SongsOrder.LOOP -> {
-                if(history.empty())
-                    HistoryEntry(songs[0], 0)
-                history.pop()
-            }
+                SongsOrder.SHUFFLE -> {
+                    waitShufflerPrepared()
+                    val nextIndex = shuffler.nextIndex
+                    songs[nextIndex].song
+                }
 
-            SongsOrder.SHUFFLE -> {
-                waitShufflerPrepared()
-                TODO()
-            }
-
-            else -> throw IllegalArgumentException(
-                "Unknown ${mOrder.javaClass.simpleName}: ${mOrder.name}" )
-        }?.also {
-            history.push(it)
-        }?.song
+                else -> throw IllegalArgumentException(
+                    "Unknown ${mOrder.javaClass.simpleName}: ${mOrder.name}" )
+            }.also { history.push(it) }
     }
 }

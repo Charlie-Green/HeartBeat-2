@@ -12,6 +12,7 @@ import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
 import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
+import by.vadim_churun.individual.heartbeat2.shared.SongsOrder
 import by.vadim_churun.individual.heartbeat2.ui.UiUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
@@ -227,17 +228,26 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         imgvPlayPause.setImageResource(iconID)
     }
 
-    private fun renderSongsOrder(order: by.vadim_churun.individual.heartbeat2.shared.SongsOrder) {
+    private fun renderSongsOrder(order: SongsOrder) {
         val idSelectedIcon = when(order) {
-            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SEQUENTIAL -> R.id.imgvSequential
-            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.LOOP       -> R.id.imgvLoop
-            by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SHUFFLE    -> R.id.imgvShuffle
+            SongsOrder.SEQUENTIAL -> R.id.imgvSequential
+            SongsOrder.LOOP       -> R.id.imgvLoop
+            SongsOrder.SHUFFLE    -> R.id.imgvShuffle
             else                  -> 0
         }
         for(imgv in listOf(imgvSequential, imgvLoop, imgvShuffle)) {
             val tintColor = if(imgv.id == idSelectedIcon) colorSelected else colorUnselected
-            imgv.drawable.setTint(tintColor)
+            val drawable = imgv.drawable.apply { setTint(tintColor) }
+            imgv.setImageDrawable(drawable)
         }
+
+        val idLabel = when(order) {
+            SongsOrder.SEQUENTIAL -> R.string.sequential_order
+            SongsOrder.LOOP       -> R.string.loop_order
+            SongsOrder.SHUFFLE    -> R.string.shuffle_order
+            else                  -> 0
+        }
+        tvSongsOrder.setText(idLabel)
     }
 
     private fun renderErrorDialog(requestedStub: SongStub) {

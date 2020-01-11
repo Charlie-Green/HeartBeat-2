@@ -1,6 +1,6 @@
 package by.vadim_churun.individual.heartbeat2.model.logic
 
-import by.vadim_churun.individual.heartbeat2.model.logic.internal.SongStubsManager
+import by.vadim_churun.individual.heartbeat2.model.logic.internal.*
 import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.player.HeartBeatPlayer
@@ -16,6 +16,7 @@ import javax.inject.Inject
  * the one which manages playback **/
 class PlayerRepository @Inject constructor(
     private val player: HeartBeatPlayer,
+    private val collectMan: SongsCollectionManager,
     private val stubMan: SongStubsManager
 ) {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -85,18 +86,17 @@ class PlayerRepository @Inject constructor(
     }
 
     private val stoppedState
-        // TODO: Retrieve current SongsOrder from SongsCollectionManager
-        get() = PlaybackState.Stopped(lastSong, lastStub, SongsOrder.SEQUENTIAL)
+        get() = PlaybackState.Stopped(lastSong, lastStub, collectMan.order)
 
-    private val playingState    // TODO: The same about SongsOrder
+    private val playingState
         get() = PlaybackState.Playing(
-            lastSong!!, lastStub!!, player.position, SongsOrder.SEQUENTIAL )
+            lastSong!!, lastStub!!, player.position, collectMan.order )
 
-    private val pausedState    // TODO: The same about SongsOrder
+    private val pausedState
         get() = PlaybackState.Paused(
-            lastSong!!, lastStub!!, player.position, SongsOrder.SEQUENTIAL )
+            lastSong!!, lastStub!!, player.position, collectMan.order )
 
-    fun stateObservable()
+    fun observableState()
         = Observable.interval(192L, TimeUnit.MILLISECONDS)
             .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())

@@ -160,6 +160,7 @@
             android:tint="?android:colorBackground" />
 
         <TextView
+            android:id="@+id/tvSongsOrder"
             android:layout_gravity="fill_horizontal|center_vertical"
             android:layout_columnWeight="1"
             android:gravity="end"

@@ -46,11 +46,11 @@ class HeartBeatMediaService: Service() {
     }
 
     fun playPrevious() {
-        // TODO
+        songsRepo.previousSong?.also { playerRepo.play(it) }
     }
 
     fun playNext() {
-        // TODO
+        songsRepo.nextSong?.also { playerRepo.play(it) }
     }
 
     fun seek(position: Long) {
@@ -66,7 +66,7 @@ class HeartBeatMediaService: Service() {
     }
 
     fun setSongsOrder(order: SongsOrder) {
-        // TODO
+        songsRepo.setSongsOrder(order)
     }
 
     fun setSongPriority(songID: Int, priority: Byte) {
@@ -83,10 +83,10 @@ class HeartBeatMediaService: Service() {
 
 
     fun observableSongsCollectionState()
-        = songsRepo.observableSongsCollectionState()
+        = songsRepo.observableState()
 
     fun observablePlaybackState()
-        = playerRepo.stateObservable()
+        = playerRepo.observableState()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ class HeartBeatMediaService: Service() {
     // This Observable needs a subscriber independent from UI
     // for its functionality to work even if the app is in background.
     private fun subscribeSongs()
-        = songsRepo.observableSongsCollectionState().subscribe()
+        = songsRepo.observableState().subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////

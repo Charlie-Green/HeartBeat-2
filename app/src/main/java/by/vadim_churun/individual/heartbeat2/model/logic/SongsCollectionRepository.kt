@@ -4,9 +4,11 @@ import by.vadim_churun.individual.heartbeat2.model.logic.internal.*
 import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
+import by.vadim_churun.individual.heartbeat2.shared.SongsOrder
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -15,6 +17,7 @@ import javax.inject.Inject
 /** One of the highest level classes of MVI's "model" layer,
   * the one which manages current collection of songs. **/
 class SongsCollectionRepository @Inject constructor(
+    private val collectMan: SongsCollectionManager,
     private val dbMan: DatabaseManager,
     private val syncMan: SyncManager,
     private val stubMan: SongStubsManager
@@ -35,12 +38,15 @@ class SongsCollectionRepository @Inject constructor(
     //////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
-    fun observableSongsCollectionState(): Observable<out SongsCollectionState>
-        = dbMan.observableSongs()
+    private var stateRx: Observable<out SongsCollectionState>? = null
+
+    fun observableState(): Observable<out SongsCollectionState>
+        = stateRx ?: dbMan.observableSongs()
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.computation())
             .map { songEntities ->
                 // TODO: Filter, sort, etc.
+
                 songEntities.map { songEntity ->
                     // For now, just provide the default settings for each song.
                     // Later, that settings will be made customizable.
@@ -56,24 +62,37 @@ class SongsCollectionRepository @Inject constructor(
                         /* priority: */ 3
                     )
                 }
-            }.doOnNext { songs ->
-                // TODO: Set the new songs collection to SongsCollectionManager.
             }.map { songs ->
                 val songsList = SongsList.from(songs) { song ->
                     stubMan.stubFrom(song)
                 }
                 SongsCollectionState.CollectionPrepared(songsList)
             }.observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { state ->
+                collectMan.collection = state.songs
+            }.publish().autoConnect()
+            .also { stateRx = it }
+
+    fun setSongsOrder(order: SongsOrder) {
+        collectMan.order = order
+    }
+
+    val previousSong: SongWithSettings?
+        get() = collectMan.previous
+
+    val nextSong: SongWithSettings?
+        get() = collectMan.next
 
 
-            //////////////////////////////////////////////////////////////////////////////////////////
-            // LIFECYCLE:
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // LIFECYCLE:
 
-            init {
-                disposable.add(subscribeSync())
-            }
+    init {
+        disposable.add(subscribeSync())
+    }
 
-            fun dispose() {
-                disposable.clear()
-            }
+    fun dispose() {
+        disposable.clear()
+        collectMan.dispose()
+    }
 }

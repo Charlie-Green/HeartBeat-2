@@ -8,14 +8,14 @@ class SongsList private constructor(
     private val idToPositionMap: HashMap<Int, Int>   // Song ID -> Position
 ) {
     class Entry(
-        val song: by.vadim_churun.individual.heartbeat2.shared.SongWithSettings,
+        val song: SongWithSettings,
         val stub: SongStub
     )
 
 
     companion object {
         fun from
-        (songs: List<by.vadim_churun.individual.heartbeat2.shared.SongWithSettings>, stubFor: (song: by.vadim_churun.individual.heartbeat2.shared.SongWithSettings) -> SongStub): SongsList {
+        (songs: List<SongWithSettings>, stubFor: (song: SongWithSettings) -> SongStub): SongsList {
             val entries = songs.map { song ->
                 Entry(
                     song,

@@ -3,9 +3,11 @@ package by.vadim_churun.individual.heartbeat2.model.logic.internal
 import by.vadim_churun.individual.heartbeat2.db.entity.SongEntity
 import by.vadim_churun.individual.heartbeat2.shared.SongsSource
 import javax.inject.Inject
+import javax.inject.Singleton
 
 
 /** This class is responsible for synchronization of the local database with [SongsSource]s. **/
+@Singleton
 class SyncManager @Inject constructor(
     private val sources: List<@JvmSuppressWildcards SongsSource>,
     private val dbMan: DatabaseManager
