@@ -42,6 +42,12 @@ object SongsCollectionPresenter {
                 ui.render(state)
             }.subscribe()
 
+    private fun subscribeSyncState(service: HeartBeatMediaService, ui: SongsCollectionUI)
+        = service.observableSyncState()
+            .doOnNext { state ->
+                ui.render(state)
+            }.subscribe()
+
 
     fun bind(context: Context, ui: SongsCollectionUI) {
         if(bound) return
@@ -49,6 +55,7 @@ object SongsCollectionPresenter {
 
         serviceBinder.bind(context.applicationContext) { service ->
             disposable.add(subscribeState(service, ui))
+            disposable.add(subscribeSyncState(service, ui))
         }
         disposable.addAll(
             subscribePlay(ui),

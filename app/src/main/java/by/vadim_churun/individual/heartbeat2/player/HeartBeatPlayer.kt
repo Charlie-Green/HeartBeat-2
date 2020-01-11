@@ -5,6 +5,9 @@ import by.vadim_churun.individual.heartbeat2.shared.Song
 
 /** This interface is used to abstractiate usage of player from its implementation. **/
 interface HeartBeatPlayer {
+    /** Whether the player is preparing a song to play. **/
+    val isPreparing: Boolean
+
     /** Whether a song is currently playing. **/
     val isPlaying: Boolean
 

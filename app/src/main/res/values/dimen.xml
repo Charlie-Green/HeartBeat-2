@@ -2,4 +2,5 @@
 <resources>
     <dimen name="layout_padding_small">6dp</dimen>
     <dimen name="media_control_button_size">24dp</dimen>
+    <dimen name="progress_bar_size">32dp</dimen>
 </resources>

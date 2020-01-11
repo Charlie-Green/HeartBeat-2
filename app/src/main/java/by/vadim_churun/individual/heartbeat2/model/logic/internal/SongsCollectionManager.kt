@@ -75,12 +75,12 @@ class SongsCollectionManager @Inject constructor(
                 val curIndex = songs.indexOf(history.pop().ID) ?: return null
                 val newIndex =
                     if(curIndex == 0) songs.size-1 else curIndex.dec() % songs.size
-                return songs[newIndex].song.also { history.push(it) }
+                return songs[newIndex].song
             }
 
             // Return the previous song in the history.
             history.pop()  // Pop the current song.
-            return history.peek()
+            return history.pop()
     }
 
     val next: SongWithSettings?
@@ -103,6 +103,11 @@ class SongsCollectionManager @Inject constructor(
 
                 else -> throw IllegalArgumentException(
                     "Unknown ${mOrder.javaClass.simpleName}: ${mOrder.name}" )
-            }.also { history.push(it) }
+            }
+    }
+
+
+    fun notifyPlayingSong(song: SongWithSettings) {
+        history.push(song)
     }
 }

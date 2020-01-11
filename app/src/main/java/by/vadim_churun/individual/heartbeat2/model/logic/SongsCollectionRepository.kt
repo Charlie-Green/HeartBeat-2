@@ -3,12 +3,10 @@ package by.vadim_churun.individual.heartbeat2.model.logic
 import by.vadim_churun.individual.heartbeat2.model.logic.internal.*
 import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
-import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
-import by.vadim_churun.individual.heartbeat2.shared.SongsOrder
+import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -72,6 +70,10 @@ class SongsCollectionRepository @Inject constructor(
                 collectMan.collection = state.songs
             }.publish().autoConnect()
             .also { stateRx = it }
+
+    fun observableSyncState()
+        = syncMan.observableState()
+            .observeOn(AndroidSchedulers.mainThread())
 
     fun setSongsOrder(order: SongsOrder) {
         collectMan.order = order

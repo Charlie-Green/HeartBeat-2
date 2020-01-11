@@ -51,6 +51,12 @@ class HeartBeatExoPlayer(private val appContext: Context): HeartBeatPlayer {
     /////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
+    override val isPreparing: Boolean
+        get() {
+            val p = player ?: return false
+            return p.playWhenReady && !p.isPlaying
+        }
+
     override val isPlaying: Boolean
         get() = player?.isPlaying ?: false
 

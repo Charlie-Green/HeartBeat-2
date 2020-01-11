@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 
 /** One of the highest level classes of MVI's "model" layer,
- * the one which manages playback **/
+  * the one which manages playback **/
 class PlayerRepository @Inject constructor(
     private val player: HeartBeatPlayer,
     private val collectMan: SongsCollectionManager,
@@ -23,11 +23,12 @@ class PlayerRepository @Inject constructor(
     // PLAYBACK MANAGEMENT:
 
     fun play(song: SongWithSettings) {
+        lastSong = song
+        lastStub = stubMan.stubFrom(song)
         player.play(song)
         player.volume = song.volume
         player.rate = song.rate
-        lastSong = song
-        lastStub = stubMan.stubFrom(song)
+        collectMan.notifyPlayingSong(song)
     }
 
     fun playOrPause() {
@@ -88,6 +89,9 @@ class PlayerRepository @Inject constructor(
     private val stoppedState
         get() = PlaybackState.Stopped(lastSong, lastStub, collectMan.order)
 
+    private val preparingState
+        get() = PlaybackState.Preparing(lastStub!!)
+
     private val playingState
         get() = PlaybackState.Playing(
             lastSong!!, lastStub!!, player.position, collectMan.order )
@@ -103,6 +107,8 @@ class PlayerRepository @Inject constructor(
             .map {
                 if(player.isReleased)
                     this.stoppedState
+                else if(player.isPreparing)
+                    this.preparingState
                 else if(player.isPlaying)
                     this.playingState
                 else

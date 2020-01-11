@@ -85,6 +85,9 @@ class HeartBeatMediaService: Service() {
     fun observableSongsCollectionState()
         = songsRepo.observableState()
 
+    fun observableSyncState()
+        = songsRepo.observableSyncState()
+
     fun observablePlaybackState()
         = playerRepo.observableState()
 
