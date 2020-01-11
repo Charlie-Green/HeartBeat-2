@@ -26,8 +26,6 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     ////////////////////////////////////////////////////////////////////////////////////////
     // EXTENSION:
 
-    private var lastDuration = -1L
-
     private fun SeekBar.progressToMediaPosition()
         = progress.toLong()
 
