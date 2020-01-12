@@ -5,7 +5,7 @@ import javax.inject.Inject
 
 
 class MediaActions @Inject constructor(private val appContext: Context) {
-    private val PREFIX = "${appContext.packageName}.action"
+    private val PREFIX = "${appContext.packageName}.action."
     private val POSTFIX_PLAY_PAUSE = "PPAUSE"
     private val POSTFIX_PREVIOUS   = "PREV"
     private val POSTFIX_NEXT       = "NEXT"
@@ -15,10 +15,10 @@ class MediaActions @Inject constructor(private val appContext: Context) {
         = "${PREFIX}${POSTFIX_PLAY_PAUSE}"
 
     fun previous()
-        = "${PREFIX}.${POSTFIX_PREVIOUS}"
+        = "${PREFIX}${POSTFIX_PREVIOUS}"
 
     fun next()
-        = "${PREFIX}.${POSTFIX_NEXT}"
+        = "${PREFIX}${POSTFIX_NEXT}"
 
 
     /** Attempts to recognize the given action.

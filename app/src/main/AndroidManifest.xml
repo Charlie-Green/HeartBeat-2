@@ -13,7 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".ui.main.HeartBeatMainActivity">
+        <activity android:name=".ui.main.HeartBeatMainActivity"
+                  android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,7 +22,7 @@
         </activity>
 
         <service android:name=".service.HeartBeatMediaService"
-            android:exported="false" >
+                 android:exported="false" >
             <intent-filter>
                 <action android:name="by.vadim_churun.individual.heartbeat2.action.PPAUSE" />
                 <action android:name="by.vadim_churun.individual.heartbeat2.action.PREV" />

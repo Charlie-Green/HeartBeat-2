@@ -7,6 +7,7 @@ import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.HeartBeatApplication
 import by.vadim_churun.individual.heartbeat2.model.logic.*
 import by.vadim_churun.individual.heartbeat2.shared.*
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 
@@ -91,6 +92,7 @@ class HeartBeatMediaService: Service() {
     fun observablePlaybackState()
         = playerRepo.observableState()
 
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // BINDING:
 
@@ -109,7 +111,11 @@ class HeartBeatMediaService: Service() {
 
     override fun onCreate() {
         inject()
-        super.startForeground(notifFact.notificationID, notifFact.createNotification())
+        super.startForeground(notifFact.notificationID, notifFact.notification)
+        notifFact.observeState(
+            playerRepo.observableState()
+                .observeOn(Schedulers.computation())
+        )
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -127,5 +133,6 @@ class HeartBeatMediaService: Service() {
     override fun onDestroy() {
         songsRepo.dispose()
         playerRepo.stop()
+        notifFact.dispose()
     }
 }

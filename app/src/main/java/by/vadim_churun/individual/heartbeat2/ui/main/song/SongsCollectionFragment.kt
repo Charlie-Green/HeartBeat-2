@@ -19,8 +19,7 @@ import io.reactivex.Observable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: DialogFragment(), SongsCollectionUI,
-    ServiceDependent {
+class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
@@ -77,10 +76,12 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI,
 
     private val presenter = SongsCollectionPresenter()
 
+    /* ServiceDependent */
     override fun useBoundService(service: HeartBeatMediaService) {
         presenter.bind(service, this)
     }
 
+    /* ServiceDependent */
     override fun notifyServiceUnbound() {
         presenter.unbind()
     }

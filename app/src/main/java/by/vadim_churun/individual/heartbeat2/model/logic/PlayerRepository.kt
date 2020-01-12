@@ -100,8 +100,9 @@ class PlayerRepository @Inject constructor(
         get() = PlaybackState.Paused(
             lastSong!!, lastStub!!, player.position, collectMan.order )
 
+    private var rxState: Observable<PlaybackState>? = null
     fun observableState()
-        = Observable.interval(192L, TimeUnit.MILLISECONDS)
+        = rxState ?: Observable.interval(192L, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .map {
                 if(player.isReleased)
@@ -112,6 +113,6 @@ class PlayerRepository @Inject constructor(
                     this.playingState
                 else
                     this.pausedState
-            }
+            }.also { rxState = it }
 
 }

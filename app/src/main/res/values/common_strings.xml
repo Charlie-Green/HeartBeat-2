@@ -2,6 +2,7 @@
     <string name="app_name">HeartBeat 2</string>
     <string name="error">Error</string>
     <string name="ok">OK</string>
+    <string name="play_failed">Failed to play a song</string>
     <string name="songs_source_external_storage">External Storage</string>
     <string name="sync_error_f">HeartBeat 2 failed to fetch songs from %s.</string>
 </resources>
