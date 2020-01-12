@@ -11,9 +11,9 @@ import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
-import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
-import by.vadim_churun.individual.heartbeat2.shared.SongsOrder
-import by.vadim_churun.individual.heartbeat2.ui.UiUtils
+import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
+import by.vadim_churun.individual.heartbeat2.shared.*
+import by.vadim_churun.individual.heartbeat2.ui.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.userChanges
@@ -23,7 +23,7 @@ import kotlinx.android.synthetic.main.media_control_fragment.*
 import kotlin.math.roundToInt
 
 
-class MediaControlFragment: DialogFragment(), MediaControlUI {
+class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // EXTENSION:
 
@@ -105,19 +105,27 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
         setPeekHeight()
     }
 
-    override fun onStart() {
-        super.onStart()
-        MediaControlPresenter.bind(super.requireContext(), this)
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // MVI PRESENTER:
+
+    private val presenter = MediaControlPresenter()
+
+    override fun useBoundService(service: HeartBeatMediaService) {
+        presenter.bind(service, this)
     }
 
-    override fun onStop() {
-        MediaControlPresenter.unbind(super.requireContext())
-        super.onStop()
+    override fun notifyServiceUnbound() {
+        presenter.unbind()
     }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI INTENTS:
+
+    private var wasInitialSeek = false
+    private var wasInitialRateSet = false
+    private var wasInitialVolumeSet = false
 
     override fun playPauseIntent(): Observable<MediaControlAction.PlayPause>
         = imgvPlayPause.clicks()
@@ -133,21 +141,27 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
 
     override fun seekIntent(): Observable<MediaControlAction.Seek>
         = sbPosition.userChanges()
-            .map { event ->
+            .filter {
+                wasInitialSeek.also { wasInitialSeek = true }
+            }.map { event ->
                 val position = sbPosition.progressToMediaPosition()
                 MediaControlAction.Seek(position)
             }
 
     override fun setRateIntent(): Observable<MediaControlAction.SetRate>
         = sbRate.userChanges()
-            .map { event ->
+            .filter {
+                wasInitialRateSet.also { wasInitialRateSet = true }
+            }.map { event ->
                 val rate = sbRate.progressToPlaybackRate()
                 MediaControlAction.SetRate(rate)
             }
 
     override fun setVolumeIntent(): Observable<MediaControlAction.SetVolume>
         = sbVolume.userChanges()
-            .map { event ->
+            .filter {
+                wasInitialVolumeSet.also { wasInitialVolumeSet = true }
+            }.map { event ->
                 val volume = sbVolume.progressToVolume()
                 MediaControlAction.SetVolume(volume)
             }
@@ -162,9 +176,9 @@ class MediaControlFragment: DialogFragment(), MediaControlUI {
     }
 
     override fun setSongsOrderIntent(): Observable<MediaControlAction.SetSongsOrder>
-        = imgvSequential.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SEQUENTIAL }
-            .mergeWith(imgvLoop.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.LOOP })
-            .mergeWith(imgvShuffle.clicks().map { by.vadim_churun.individual.heartbeat2.shared.SongsOrder.SHUFFLE })
+        = imgvSequential.clicks().map { SongsOrder.SEQUENTIAL }
+            .mergeWith(imgvLoop.clicks().map { SongsOrder.LOOP })
+            .mergeWith(imgvShuffle.clicks().map { SongsOrder.SHUFFLE })
             .map { order -> MediaControlAction.SetSongsOrder(order) }
 
     override fun requestPreviousIntent(): Observable<MediaControlAction.RequestPrevious>

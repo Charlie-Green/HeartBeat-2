@@ -12,11 +12,13 @@ import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.model.state.SyncState
 import by.vadim_churun.individual.heartbeat2.presenter.song.*
+import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
+import by.vadim_churun.individual.heartbeat2.ui.ServiceDependent
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
+class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
@@ -44,14 +46,18 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI {
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.songs_collection_fragment, container, false)
 
-    override fun onStart() {
-        super.onStart()
-        SongsCollectionPresenter.bind(super.requireContext(), this)
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // MVI PRESENTER:
+
+    private val presenter = SongsCollectionPresenter()
+
+    override fun useBoundService(service: HeartBeatMediaService) {
+        presenter.bind(service, this)
     }
 
-    override fun onStop() {
-        SongsCollectionPresenter.unbind(super.requireContext())
-        super.onStop()
+    override fun notifyServiceUnbound() {
+        presenter.unbind()
     }
 
 

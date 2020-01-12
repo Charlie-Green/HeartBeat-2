@@ -8,38 +8,31 @@ import android.os.RemoteException
 /** A help class to safely bind/unbind [HeartBeatMediaService]. **/
 class MediaServiceBinder {
     private var service: HeartBeatMediaService? = null
-    private var onConnect: ((service: HeartBeatMediaService) -> Unit)? = null
+    private var connection: ServiceConnection? = null
 
-    private val connection = object: ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-            service = (binder as HeartBeatMediaService.MediaBinder).service
-            onConnect?.also { interact(it) }
-            onConnect = null
-        }
 
-        override fun onServiceDisconnected(p0: ComponentName?) {
-            service = null; onConnect = null
-        }
+    fun bind(context: Context, onConnected: (service: HeartBeatMediaService) -> Unit) {
+        if(connection != null)
+            throw Exception("${HeartBeatMediaService::class.java.simpleName} has been bound")
+
+        val mConnection = object: ServiceConnection {
+            override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+                service = (binder as HeartBeatMediaService.MediaBinder).service
+                interact(onConnected)
+            }
+
+            override fun onServiceDisconnected(name: ComponentName) {
+                service = null; connection = null
+            }
+        }.also { connection = it }
+        val int = Intent(context.applicationContext, HeartBeatMediaService::class.java)
+        context.startService(int)
+        context.bindService(int, mConnection, Context.BIND_AUTO_CREATE)
     }
 
-
-    fun bind(appContext: Context) {
-        if(service != null) return
-        val int = Intent(appContext, HeartBeatMediaService::class.java)
-        appContext.startService(int)
-        appContext.bindService(int, connection, Context.BIND_AUTO_CREATE)
-    }
-
-    fun bind(appContext: Context, onConnected: (service: HeartBeatMediaService) -> Unit) {
-        this.onConnect = onConnected
-        bind(appContext)
-    }
-
-    fun unbind(appContext: Context) {
-        onConnect = null
-        if(service == null) return
-        service = null
-        appContext.unbindService(connection)
+    fun unbind(context: Context) {
+        connection?.also { context.unbindService(it) }
+        service = null; connection = null
     }
 
     /** Attempts to execute the given callback on a [HeartBeatMediaService] instance.

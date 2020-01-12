@@ -1,4 +1,5 @@
 package by.vadim_churun.individual.heartbeat2.ui
+import androidx.fragment.app.FragmentManager
 
 
 object UiUtils {
@@ -11,5 +12,14 @@ object UiUtils {
         val ms = "${m.toString().padStart(2, '0')}:"
         val ss = "$s".padStart(2, '0')
         return "$hs$ms$ss"
+    }
+
+    fun doForServiceDependentFragments
+    (fragmMan: FragmentManager, action: (dependent: ServiceDependent) -> Unit) {
+        for(fragm in fragmMan.fragments) {
+            if(fragm.isAdded && fragm is ServiceDependent) {
+                action(fragm)
+            }
+        }
     }
 }

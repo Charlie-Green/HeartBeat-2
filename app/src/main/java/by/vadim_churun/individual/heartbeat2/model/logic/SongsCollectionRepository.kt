@@ -32,18 +32,24 @@ class SongsCollectionRepository @Inject constructor(
                 Observable.empty<Unit>()
             }.subscribe()
 
+    private fun subscribeCollectionPrepared()
+        = observableState()
+            .doOnNext { state ->
+                if(state is SongsCollectionState.CollectionPrepared)
+                    collectMan.collection = state.songs
+            }.subscribe()
+
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
     private var stateRx: Observable<out SongsCollectionState>? = null
-
     fun observableState(): Observable<out SongsCollectionState>
         = stateRx ?: dbMan.observableSongs()
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.computation())
             .map { songEntities ->
-                // TODO: Filter, sort, etc.
+                // TODO: Filter, etc.
 
                 songEntities.map { songEntity ->
                     // For now, just provide the default settings for each song.
@@ -66,10 +72,8 @@ class SongsCollectionRepository @Inject constructor(
                 }
                 SongsCollectionState.CollectionPrepared(songsList)
             }.observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { state ->
-                collectMan.collection = state.songs
-            }.publish().autoConnect()
             .also { stateRx = it }
+
 
     fun observableSyncState()
         = syncMan.observableState()
@@ -91,6 +95,7 @@ class SongsCollectionRepository @Inject constructor(
 
     init {
         disposable.add(subscribeSync())
+        disposable.add(subscribeCollectionPrepared())
     }
 
     fun dispose() {

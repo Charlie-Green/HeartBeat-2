@@ -1,16 +1,49 @@
 package by.vadim_churun.individual.heartbeat2.ui.main
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import by.vadim_churun.individual.heartbeat2.R
+import by.vadim_churun.individual.heartbeat2.presenter.service.*
+import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
+import by.vadim_churun.individual.heartbeat2.ui.UiUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.main_activity.*
 
 
-class HeartBeatMainActivity: AppCompatActivity() {
+class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // MVI:
+
+    private val presenter = ServiceBindingPresenter()
+
+    override val boundContext: Context
+        get() = this
+
+    override fun onConnected(service: HeartBeatMediaService) {
+        val fragmMan = super.getSupportFragmentManager()
+        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
+            dependent.useBoundService(service)
+        }
+    }
+
+
+    private fun bindPresenter() {
+        presenter.bind(this)
+    }
+
+    private fun unbindPresenter() {
+        val fragmMan = super.getSupportFragmentManager()
+        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
+            dependent.notifyServiceUnbound()
+        }
+        presenter.unbind(this)
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
@@ -62,5 +95,11 @@ class HeartBeatMainActivity: AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         preventFragmentsOverlap()
+        bindPresenter()
+    }
+
+    override fun onStop() {
+        unbindPresenter()
+        super.onStop()
     }
 }

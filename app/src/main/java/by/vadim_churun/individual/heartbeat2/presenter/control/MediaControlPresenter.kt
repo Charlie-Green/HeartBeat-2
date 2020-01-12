@@ -1,97 +1,75 @@
 package by.vadim_churun.individual.heartbeat2.presenter.control
 
-import android.content.Context
-import by.vadim_churun.individual.heartbeat2.presenter.PresenterUtils
-import by.vadim_churun.individual.heartbeat2.service.*
+import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
 import io.reactivex.disposables.CompositeDisposable
 
 
 /** MVI Presenter for [MediaControlUI]. **/
-object MediaControlPresenter {
-    //////////////////////////////////////////////////////////////////////////////////////////
+class MediaControlPresenter {
+    /////////////////////////////////////////////////////////////////////////////////////////
     // RX:
 
     private val disposable = CompositeDisposable()
 
-    private fun subscribePlayPause(ui: MediaControlUI)
-        = ui.playPauseIntent()
-            .doOnNext {
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.playOrPause()
-                }
-            }.subscribe()
-
-    private fun subscribeStop(ui: MediaControlUI)
+    private fun subscribeStop(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.stopIntent()
             .doOnNext {
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.stopPlayback()
-                }
+                service.stopPlayback()
             }.subscribe()
 
-    private fun subscribeReplay(ui: MediaControlUI)
-        = ui.replayIntent()
-            .doOnNext {
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.replayCurrentSong()
-                }
-            }.subscribe()
-
-    private fun subscribeSeek(ui: MediaControlUI)
+    private fun subscribeSeek(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.seekIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.seek(action.position)
-                }
+                service.seek(action.position)
             }.subscribe()
 
-    private fun subscribeSetRate(ui: MediaControlUI)
+    private fun subscribeReplay(service: HeartBeatMediaService, ui: MediaControlUI)
+        = ui.replayIntent()
+            .doOnNext {
+                service.replayCurrentSong()
+            }.subscribe()
+
+    private fun subscribeSetRate(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.setRateIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.setPlaybackRate(action.rate)
-                }
+                service.setPlaybackRate(action.rate)
             }.subscribe()
 
-    private fun subscribeSetVolume(ui: MediaControlUI)
+    private fun subscribeSetVolume(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.setVolumeIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.setVolume(action.volume)
-                }
+                service.setVolume(action.volume)
             }.subscribe()
 
-    private fun subscribeSetPriority(ui: MediaControlUI)
+    private fun subscribePlayPause(service: HeartBeatMediaService, ui: MediaControlUI)
+        = ui.playPauseIntent()
+            .doOnNext {
+                service.playOrPause()
+            }.subscribe()
+
+    private fun subscribeNext(service: HeartBeatMediaService, ui: MediaControlUI)
+        = ui.requestNextIntent()
+            .doOnNext {
+                service.playNext()
+            }.subscribe()
+
+    private fun subscribeSetPriority(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.setPriorityIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.setCurrentSongPriority(action.priority)
-                }
+                service.setCurrentSongPriority(action.priority)
             }.subscribe()
 
-    private fun subscribeSetSongsOrder(ui: MediaControlUI)
+    private fun subscribeSetSongsOrder(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.setSongsOrderIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.setSongsOrder(action.order)
-                }
+                service.setSongsOrder(action.order)
             }.subscribe()
 
-    private fun subscribeRequestPrevious(ui: MediaControlUI)
+    private fun subscribePrevious(service: HeartBeatMediaService, ui: MediaControlUI)
         = ui.requestPreviousIntent()
-            .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.playPrevious()
-                }
+            .doOnNext {
+                service.playPrevious()
             }.subscribe()
-
-    private fun subscribeRequestNext(ui: MediaControlUI)
-        = ui.requestNextIntent()
-            .doOnNext { action ->
-                PresenterUtils.interactMediaService(mediaBinder) { service ->
-                    service.playNext()
-                }
-         }.subscribe()
 
     private fun subscribeState(service: HeartBeatMediaService, ui: MediaControlUI)
         = service.observablePlaybackState()
@@ -100,38 +78,32 @@ object MediaControlPresenter {
             }.subscribe()
 
 
-    //////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
     // BIND/UNBIND:
 
     private var bound = false
-    private val mediaBinder = MediaServiceBinder()
 
-
-    fun bind(context: Context, ui: MediaControlUI) {
+    fun bind(service: HeartBeatMediaService, ui: MediaControlUI) {
         if(bound) return
         bound = true
 
-        mediaBinder.bind(context.applicationContext) { service ->
-            disposable.add(subscribeState(service, ui))
-        }
         disposable.addAll(
-            subscribeStop(ui),
-            subscribeSeek(ui),
-            subscribeReplay(ui),
-            subscribeSetRate(ui),
-            subscribePlayPause(ui),
-            subscribeSetVolume(ui),
-            subscribeRequestNext(ui),
-            subscribeSetPriority(ui),
-            subscribeSetSongsOrder(ui),
-            subscribeRequestPrevious(ui)
+            subscribeStop(service, ui),
+            subscribeSeek(service, ui),
+            subscribeNext(service, ui),
+            subscribeReplay(service, ui),
+            subscribeSetRate(service, ui),
+            subscribePrevious(service, ui),
+            subscribeSetVolume(service, ui),
+            subscribePlayPause(service, ui),
+            subscribeSetPriority(service, ui),
+            subscribeSetSongsOrder(service, ui),
+            subscribeState(service, ui)
         )
     }
 
-    fun unbind(context: Context) {
-        if(!bound) return
+    fun unbind() {
         bound = false
-        disposable.dispose()
-        mediaBinder.unbind(context.applicationContext)
+        disposable.clear()
     }
 }

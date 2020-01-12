@@ -102,7 +102,6 @@ class PlayerRepository @Inject constructor(
 
     fun observableState()
         = Observable.interval(192L, TimeUnit.MILLISECONDS)
-            .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
             .map {
                 if(player.isReleased)

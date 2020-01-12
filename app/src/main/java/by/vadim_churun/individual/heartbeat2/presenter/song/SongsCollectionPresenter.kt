@@ -1,42 +1,35 @@
 package by.vadim_churun.individual.heartbeat2.presenter.song
 
-import android.content.Context
-import by.vadim_churun.individual.heartbeat2.presenter.PresenterUtils
 import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.service.MediaServiceBinder
 import io.reactivex.disposables.CompositeDisposable
 
 
-object SongsCollectionPresenter {
-    private val disposable = CompositeDisposable()
-    private val serviceBinder = MediaServiceBinder()
-    private var bound = false
+/** MVI Presenter for [SongsCollectionUI]. **/
+class SongsCollectionPresenter {
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // RX:
 
-    private fun subscribePlay(ui: SongsCollectionUI)
+    private val disposable = CompositeDisposable()
+
+    private fun subscribePlay(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = ui.playIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(serviceBinder) { service ->
-                    service.play(action.song)
-                }
+                service.play(action.song)
             }.subscribe()
 
-    private fun subscribeDecodeArt(ui: SongsCollectionUI)
+    private fun subscribeDecodeArt(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = ui.decodeArtIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(serviceBinder) { service ->
-                    service.requestArtDecode(action.song)
-                }
+                service.requestArtDecode(action.song)
             }.subscribe()
 
-    private fun subscribeSetPriority(ui: SongsCollectionUI)
+    private fun subscribeSetPriority(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = ui.setPriorityIntent()
             .doOnNext { action ->
-                PresenterUtils.interactMediaService(serviceBinder) { service ->
-                    service.setSongPriority(action.songID, action.newPriority)
-                }
+                service.setSongPriority(action.songID, action.newPriority)
             }.subscribe()
 
-    private fun subscribeState(service: HeartBeatMediaService, ui: SongsCollectionUI)
+    private fun subscribeCollectionState(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = service.observableSongsCollectionState()
             .doOnNext { state ->
                 ui.render(state)
@@ -49,26 +42,26 @@ object SongsCollectionPresenter {
             }.subscribe()
 
 
-    fun bind(context: Context, ui: SongsCollectionUI) {
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // BIND/UNBIND:
+
+    private var bound = false
+
+    fun bind(service: HeartBeatMediaService, ui: SongsCollectionUI) {
         if(bound) return
         bound = true
 
-        serviceBinder.bind(context.applicationContext) { service ->
-            disposable.add(subscribeState(service, ui))
-            disposable.add(subscribeSyncState(service, ui))
-        }
         disposable.addAll(
-            subscribePlay(ui),
-            subscribeDecodeArt(ui),
-            subscribeSetPriority(ui)
+            subscribePlay(service, ui),
+            subscribeDecodeArt(service, ui),
+            subscribeSetPriority(service, ui),
+            subscribeCollectionState(service, ui),
+            subscribeSyncState(service, ui)
         )
     }
 
-    fun unbind(context: Context) {
-        if(!bound) return
+    fun unbind() {
         bound = false
-
         disposable.clear()
-        serviceBinder.unbind(context.applicationContext)
     }
 }

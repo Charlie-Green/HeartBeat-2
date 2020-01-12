@@ -16,11 +16,47 @@ import javax.inject.Singleton
 @Singleton
 class SyncManager @Inject constructor(
     private val appContext: Context,
-    private val sources: List<@JvmSuppressWildcards SongsSource>,
+    sources: List<@JvmSuppressWildcards SongsSource>,
     private val dbMan: DatabaseManager
 ) {
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // SOURCE WRAPPER:
+
+    private inner class SongsSourceWrapper(val source: SongsSource) {
+        var nextSyncTime = 0L
+        var lastErrorTime = 0L
+
+        val name
+            get() = when(source) {
+                is ExternalStorageSongsSource -> R.string.songs_source_external_storage
+                else -> throw Exception(
+                    "Unknown ${SongsSource::class.java.simpleName}: ${this.javaClass.simpleName}" )
+            }.let { appContext.getString(it) }
+
+        fun sync() {
+            val songEntities = source.fetch().map { song ->
+                SongEntity.fromSong(song, source.javaClass)
+            }
+            dbMan.updateSource(source.javaClass, songEntities)
+        }
+    }
+
+    private val sourceWrappers: List<SongsSourceWrapper>
+
+    init {
+        sourceWrappers = List(sources.size) { index ->
+            SongsSourceWrapper(sources[index])
+        }
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // STATE:
+
+    // Do not disturb the user with error messages related to the same source
+    // more frequently then once in 2 hours.
+    private val ERROR_DISTURB_INTERVAL = 7_200_000L
 
     private val stateSubject = BehaviorSubject.create<SyncState>()
 
@@ -31,37 +67,14 @@ class SyncManager @Inject constructor(
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
-    // FIELDS AND HELP:
-
-    private val nextSyncTimes  = MutableList(sources.size) { 0L }
-    private val lastErrorTimes = MutableList(sources.size) { 0L }
-    private val ERROR_DISTURB_INTERVAL = 7_200_000L  // (1)
-    // (1) Do not disturb the user with error messages related to the same source
-    // more frequently then once in 2 hours.
-
-    private val SongsSource.name
-        get() = when(this) {
-            is ExternalStorageSongsSource -> R.string.songs_source_external_storage
-            else -> throw Exception(
-                "Unknown ${SongsSource::class.java.simpleName}: ${this.javaClass.simpleName}" )
-        }.let { appContext.getString(it) }
-
-    private fun SongsSource.sync() {
-        val songEntities = fetch().map { song ->
-            SongEntity.fromSong(song, this.javaClass)
-        }
-        dbMan.updateSource(this.javaClass, songEntities)
-    }
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////
-    // FUNCTIONALITY:
+    // IMPLEMENTATION:
 
     fun syncIfTime() {
         var activeStateEmitted = false
 
-        for(index in sources.indices) {
-            if(System.currentTimeMillis() < nextSyncTimes[index])
+        for(index in sourceWrappers.indices) {
+            val swrap = sourceWrappers[index]
+            if(System.currentTimeMillis() < swrap.nextSyncTime)
                 continue  // It's not time to sync with this source yet.
 
             if(!activeStateEmitted) {
@@ -69,24 +82,23 @@ class SyncManager @Inject constructor(
                 activeStateEmitted = true
             }
 
-            val src = sources[index]
             try {
-                src.sync()
+                swrap.sync()
             } catch(thr: Throwable) {
                 val now = System.currentTimeMillis()
                 SyncState.Error(
-                    now - lastErrorTimes[index] >= ERROR_DISTURB_INTERVAL,
-                    src.name,
+                    now - swrap.lastErrorTime >= ERROR_DISTURB_INTERVAL,
+                    swrap.name,
                     thr
                 ).also {
                     stateSubject.onNext(it)
                     if(it.shouldDisturbUser)
-                        lastErrorTimes[index] = now
+                        swrap.lastErrorTime = now
                 }
             }
 
-            // The time spent for the sync is not encountered.
-            nextSyncTimes[index] = System.currentTimeMillis() + 1000L*src.recommendedSyncPeriod
+            val syncPeriod = 1000L * swrap.source.recommendedSyncPeriod
+            swrap.nextSyncTime = System.currentTimeMillis() + syncPeriod
         }
 
         if(activeStateEmitted)

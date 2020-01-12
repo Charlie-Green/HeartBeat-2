@@ -1,6 +1,6 @@
 package by.vadim_churun.individual.heartbeat2.storage
 
-import by.vadim_churun.individual.heartbeat2.shared.Song
+import by.vadim_churun.individual.heartbeat2.shared.*
 import android.Manifest
 import android.content.ContentResolver
 import android.content.ContentUris
@@ -12,8 +12,7 @@ import android.net.Uri
 import android.provider.MediaStore
 
 
-class ExternalStorageSongsSource(val resolver: ContentResolver):
-    by.vadim_churun.individual.heartbeat2.shared.SongsSource {
+class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
     ////////////////////////////////////////////////////////////////////////////////////////
     // HELP:
 

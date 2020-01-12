@@ -1,2 +1,2 @@
-include ':app', ':entityJAR', ':shared', ':storage'
-rootProject.name='HeartBeat'
+include ':app', ':shared', ':storage'
+rootProject.name='HeartBeat 2'

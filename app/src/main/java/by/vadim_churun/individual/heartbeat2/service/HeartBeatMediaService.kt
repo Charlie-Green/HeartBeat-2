@@ -7,7 +7,6 @@ import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.HeartBeatApplication
 import by.vadim_churun.individual.heartbeat2.model.logic.*
 import by.vadim_churun.individual.heartbeat2.shared.*
-import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
 
@@ -54,6 +53,7 @@ class HeartBeatMediaService: Service() {
     }
 
     fun seek(position: Long) {
+        android.util.Log.v("HbService", "seek($position)")
         playerRepo.seek(position)
     }
 
@@ -91,18 +91,6 @@ class HeartBeatMediaService: Service() {
     fun observablePlaybackState()
         = playerRepo.observableState()
 
-
-    /////////////////////////////////////////////////////////////////////////////////////////
-    // RX:
-
-    private val disposable = CompositeDisposable()
-
-    // This Observable needs a subscriber independent from UI
-    // for its functionality to work even if the app is in background.
-    private fun subscribeSongs()
-        = songsRepo.observableState().subscribe()
-
-
     /////////////////////////////////////////////////////////////////////////////////////////
     // BINDING:
 
@@ -122,7 +110,6 @@ class HeartBeatMediaService: Service() {
     override fun onCreate() {
         inject()
         super.startForeground(notifFact.notificationID, notifFact.createNotification())
-        disposable.add(subscribeSongs())
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -139,7 +126,6 @@ class HeartBeatMediaService: Service() {
 
     override fun onDestroy() {
         songsRepo.dispose()
-        disposable.clear()
         playerRepo.stop()
     }
 }
