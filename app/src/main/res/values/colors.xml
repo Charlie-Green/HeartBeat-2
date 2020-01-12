@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="default_primary">#000060</color>
-    <color name="default_primary_dark">#000040</color>
+    <color name="default_primary_dark">#000030</color>
     <color name="default_accent">#d00080</color>
     <color name="default_text">#000018</color>
     <color name="default_subtitle">#606078</color>

@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.presenter.song.SongsCollectionAction
-import by.vadim_churun.individual.heartbeat2.ui.UiUtils
+import by.vadim_churun.individual.heartbeat2.ui.common.UiUtils
 import kotlinx.android.synthetic.main.song_listitem.view.*
 
 

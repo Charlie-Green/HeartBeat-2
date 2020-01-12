@@ -1,10 +1,10 @@
 package by.vadim_churun.individual.heartbeat2.ui.main.control
 
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.*
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.R
@@ -13,17 +13,18 @@ import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.presenter.control.*
 import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.shared.*
-import by.vadim_churun.individual.heartbeat2.ui.*
+import by.vadim_churun.individual.heartbeat2.ui.common.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.userChanges
 import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.*
 import kotlinx.android.synthetic.main.media_control_fragment.*
 import kotlin.math.roundToInt
 
 
-class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
+class MediaControlFragment:
+DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // EXTENSION:
 
@@ -58,25 +59,40 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
     }
 
 
+    private fun TextView.updateTextIfNew(newText: String?) {
+        if(newText == null)
+            text = ""
+        else if(text != newText)  // This check is crucial for marquee animation to work.
+            text = newText
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // LAYOUT:
 
-    private fun preventNavBarOverlap() {
+    /* SystemUiOverlapped */
+    override fun onSystemUiVisibilityChanged(isVisible: Boolean) {
         val display = super.requireActivity().windowManager.defaultDisplay
-        if(display.rotation != Surface.ROTATION_0)
-            return    // The navigation bar doesn't overlap any media controls in this orientation.
-
-        val res = super.getResources()
-        val idNavHeight = res.getIdentifier("navigation_bar_height", "dimen", "android")
-        val navHeight = if(idNavHeight == 0) {
-            val density = DisplayMetrics().also { display.getMetrics(it) }.density
-            48f.times(density).toInt()   // Typical navigation bar height is 48dp.
+        val navSize = if(isVisible) {
+            // Navigation bar is visible. Need its size to know how much padding to add.
+            UiUtils.navBarHeight(super.getResources(), display)
         } else {
-            res.getDimensionPixelSize(idNavHeight)
+            // Navigation bar is invisible. No additional padding is needed.
+            0
         }
 
         val v = super.requireView()
-        v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navHeight)
+        when(display.rotation) {
+            Surface.ROTATION_0 ->
+                v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navSize)
+            Surface.ROTATION_90 ->
+                v.setPadding(v.paddingLeft, v.paddingTop, navSize, v.paddingBottom)
+            Surface.ROTATION_270 ->
+                v.setPadding(navSize, v.paddingTop, v.paddingRight, v.paddingBottom)
+        }
+
+        if(display.rotation != Surface.ROTATION_0)
+            return    // The navigation bar doesn't overlap any media controls in this orientation.
     }
 
     private fun setPeekHeight() {
@@ -91,6 +107,32 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
         }
     }
 
+    private fun letTitleAndArtistMarquee() {
+        tvTitle.isSelected = true
+        tvArtist.isSelected = true
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // GESTURE CONTROL:
+
+    private val normalizeRateSubject = PublishSubject.create<Unit>()
+
+    private val rateNormalizingGestListener =
+        object: GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(event: MotionEvent): Boolean
+                = true
+
+            override fun onDoubleTap(event: MotionEvent): Boolean {
+                normalizeRateSubject.onNext(Unit)
+                return true    // Consumed.
+            }
+        }
+
+    private val rateNormalizingGestDetector by lazy {
+        GestureDetector(super.requireContext(), rateNormalizingGestListener)
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
@@ -99,10 +141,28 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.media_control_fragment, container, false)
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        for(tv in listOf(tvRateLabel, tvRate)) {
+            tv.setOnTouchListener { _, event ->
+                // Double-tap on these TextViews will set rate to 1.0.
+                rateNormalizingGestDetector.onTouchEvent(event)
+            }
+        }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        preventNavBarOverlap()
         setPeekHeight()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        preventInitialSeekbarChanges()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        letTitleAndArtistMarquee()
     }
 
 
@@ -111,10 +171,12 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
 
     private val presenter = MediaControlPresenter()
 
+    /* ServiceDependent */
     override fun useBoundService(service: HeartBeatMediaService) {
         presenter.bind(service, this)
     }
 
+    /* Service Dependent */
     override fun notifyServiceUnbound() {
         presenter.unbind()
     }
@@ -126,6 +188,11 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
     private var wasInitialSeek = false
     private var wasInitialRateSet = false
     private var wasInitialVolumeSet = false
+
+    private fun preventInitialSeekbarChanges() {
+        wasInitialRateSet = false; wasInitialVolumeSet = false
+        wasInitialSeek = false
+    }
 
     override fun playPauseIntent(): Observable<MediaControlAction.PlayPause>
         = imgvPlayPause.clicks()
@@ -155,7 +222,9 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
             }.map { event ->
                 val rate = sbRate.progressToPlaybackRate()
                 MediaControlAction.SetRate(rate)
-            }
+            }.mergeWith( normalizeRateSubject
+                .map { MediaControlAction.SetRate(1.0f) }
+            )
 
     override fun setVolumeIntent(): Observable<MediaControlAction.SetVolume>
         = sbVolume.userChanges()
@@ -209,8 +278,8 @@ class MediaControlFragment: DialogFragment(), MediaControlUI, ServiceDependent {
 
 
     private fun renderStub(stub: SongStub?) {
-        tvTitle.text = stub?.displayTitle ?: ""
-        tvArtist.text = stub?.displayArtist ?: ""
+        tvTitle.updateTextIfNew(stub?.displayTitle)
+        tvArtist.updateTextIfNew(stub?.displayArtist)
     }
 
     private fun renderSongSettings(song: SongWithSettings) {

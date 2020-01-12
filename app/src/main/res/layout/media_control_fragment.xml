@@ -10,15 +10,17 @@
     android:background="?colorPrimary"
     android:padding="@dimen/layout_padding_small"  >
 
+        <!-- Title and artist -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             style="@style/Title.OnPrimaryColor"
-            android:singleLine="true"
             android:ellipsize="marquee"
+            android:scrollHorizontally="true"
             android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
             android:text="Title" />
 
         <TextView
@@ -29,10 +31,12 @@
             style="@style/Subtitle.OnPrimaryColor"
             android:singleLine="true"
             android:ellipsize="marquee"
+            android:scrollHorizontally="true"
             android:marqueeRepeatLimit="marquee_forever"
             android:text="Artist" />
 
 
+        <!-- Position -->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -64,11 +68,12 @@
         </LinearLayout>
 
 
+        <!-- Most important controls: play/pause, replay, etc. -->
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" >
+            android:layout_marginTop="12dp" >
 
             <ImageView
                 android:id="@+id/imgvPlayPause"
@@ -120,10 +125,38 @@
             android:columnCount="3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp" >
+            android:layout_marginTop="8dp" >
+
+
+            <!-- Rate -->
+            <TextView
+                android:id="@+id/tvRateLabel"
+                android:layout_gravity="fill_horizontal"
+                style="@style/Label.OnPrimaryColor"
+                android:text="@string/playback_rate_label" />
+
+            <SeekBar
+                android:id="@+id/sbRate"
+                android:layout_gravity="fill_horizontal"
+                android:layout_columnWeight="5"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:progress="50"
+                android:max="150" />
 
             <TextView
+                android:id="@+id/tvRate"
+                android:layout_gravity="fill_horizontal"
+                android:layout_columnWeight="1"
+                android:gravity="end"
+                style="@style/Label.OnPrimaryColor"
+                android:text="x1.00" />
+
+
+            <!-- Songs order. -->
+            <TextView
                 android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="6dp"
                 style="@style/Label.OnPrimaryColor"
                 android:text="@string/songs_order_label" />
 
@@ -131,6 +164,7 @@
                 android:orientation="horizontal"
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="4"
+                android:layout_marginTop="6dp"
                 android:gravity="center_horizontal" >
 
                 <ImageView
@@ -163,36 +197,16 @@
                 android:id="@+id/tvSongsOrder"
                 android:layout_gravity="fill_horizontal|center_vertical"
                 android:layout_columnWeight="1"
+                android:layout_marginTop="6dp"
                 android:gravity="end"
                 style="@style/Label.OnPrimaryColor"
                 android:text="@string/shuffle_order" />
 
 
+            <!-- Volume -->
             <TextView
                 android:layout_gravity="fill_horizontal"
-                style="@style/Label.OnPrimaryColor"
-                android:text="@string/playback_rate_label" />
-
-            <SeekBar
-                android:id="@+id/sbRate"
-                android:layout_gravity="fill_horizontal"
-                android:layout_columnWeight="5"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="6dp"
-                android:progress="50"
-                android:max="150" />
-
-            <TextView
-                android:id="@+id/tvRate"
-                android:layout_gravity="fill_horizontal"
-                android:layout_columnWeight="1"
-                android:gravity="end"
-                style="@style/Label.OnPrimaryColor"
-                android:text="x1.00" />
-
-
-            <TextView
-                android:layout_gravity="fill_horizontal"
+                android:layout_marginTop="6dp"
                 style="@style/Label.OnPrimaryColor"
                 android:text="@string/volume_label" />
 
@@ -202,6 +216,7 @@
                 android:layout_columnWeight="5"
                 android:layout_marginLeft="6dp"
                 android:layout_marginRight="6dp"
+                android:layout_marginTop="6dp"
                 android:progress="100"
                 android:max="100" />
 
@@ -210,10 +225,12 @@
                 android:layout_gravity="fill_horizontal"
                 android:layout_columnWeight="1"
                 android:gravity="end"
+                android:layout_marginTop="6dp"
                 style="@style/Label.OnPrimaryColor"
                 android:text="100%" />
 
 
+            <!-- Priority -->
             <TextView
                 android:layout_gravity="fill_horizontal|center_vertical"
                 style="@style/Label.OnPrimaryColor"
@@ -232,7 +249,8 @@
                     android:isIndicator="false"
                     android:numStars="5"
                     android:stepSize="1.0"
-                    android:progressTint="?android:colorBackground" />
+                    android:progressTint="?android:colorBackground"
+                    android:progressBackgroundTint="?android:colorPrimaryDark" />
 
             </HorizontalScrollView>
 

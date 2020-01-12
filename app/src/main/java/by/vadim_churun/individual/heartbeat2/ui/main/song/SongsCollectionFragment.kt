@@ -1,32 +1,39 @@
 package by.vadim_churun.individual.heartbeat2.ui.main.song
 
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AlertDialog
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.vadim_churun.individual.heartbeat2.R
 import by.vadim_churun.individual.heartbeat2.model.obj.SongsList
-import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
-import by.vadim_churun.individual.heartbeat2.model.state.SyncState
+import by.vadim_churun.individual.heartbeat2.model.state.*
 import by.vadim_churun.individual.heartbeat2.presenter.song.*
 import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.ui.ServiceDependent
+import by.vadim_churun.individual.heartbeat2.ui.common.ServiceDependent
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDependent {
+class SongsCollectionFragment: DialogFragment(), SongsCollectionUI,
+    ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
     private fun displaySongs(songs: SongsList) {
-        recvSongs.layoutManager = recvSongs.layoutManager
+        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
+        val lastPosition = layoutMan?.findFirstVisibleItemPosition()
+        recvSongs.layoutManager = layoutMan
             ?: LinearLayoutManager(super.requireContext())
         val newAdapter = SongsCollectionAdapter(super.requireContext(), songs)
         recvSongs.swapAdapter(newAdapter, true)
+
+        // Preserve the scrolled position:
+        lastPosition?.also { recvSongs.scrollToPosition(it) }
     }
 
     private fun showSyncErrorDialog(sourceName: String, cause: Throwable) {
@@ -38,6 +45,20 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
             .show()
     }
 
+    private fun locateFindCurrentFab() {
+        val small = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_small)
+        val medium = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_medium)
+        val big = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_big)
+        val display = super.requireActivity().windowManager.defaultDisplay
+        val metrs = DisplayMetrics().also { display.getMetrics(it) }
+        val isPortrait = (metrs.heightPixels > metrs.widthPixels)
+
+        val params = fabCurrent.layoutParams as CoordinatorLayout.LayoutParams
+        params.bottomMargin = if(isPortrait) medium else small
+        params.marginEnd    = if(isPortrait) small else big
+        fabCurrent.layoutParams = params
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
@@ -45,6 +66,10 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
     override fun onCreateView
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View
         = inflater.inflate(R.layout.songs_collection_fragment, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        locateFindCurrentFab()
+    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////

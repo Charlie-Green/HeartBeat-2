@@ -17,6 +17,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
+
+        <!-- Play/Pause and replay buttons, title and artist -->
         <ImageView
             android:id="@+id/imgvPlayPause"
             android:layout_width="@dimen/media_control_button_size"
@@ -40,11 +42,12 @@
         <TextView
             android:id="@+id/tvTitle"
             android:layout_gravity="fill_horizontal"
+            android:gravity="center_horizontal"
             style="@style/Title.OnPrimaryColor"
             android:ellipsize="marquee"
-            android:gravity="center_horizontal"
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
+            android:scrollHorizontally="true"
             android:text="Title" />
 
         <TextView
@@ -55,11 +58,13 @@
             android:singleLine="true"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
             android:text="Artist" />
 
     </GridLayout>
 
 
+    <!-- Position -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -92,92 +97,74 @@
 
 
     <GridLayout
-        android:orientation="vertical"
-        android:rowCount="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp" >
+        android:columnCount="4"
+        android:layout_marginTop="8dp" >
 
-        <ImageView
-            android:id="@+id/imgvPrevious"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:src="@drawable/ic_previous"
-            android:tint="?android:colorBackground" />
+        <!-- Previous, stop, next buttons -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_gravity="fill_horizontal"
+            android:layout_columnWeight="6" >
 
-        <ImageView
-            android:id="@+id/imgvStop"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:layout_marginStart="6dp"
-            android:src="@drawable/ic_stop"
-            android:tint="?android:colorBackground" />
+            <ImageView
+                android:id="@+id/imgvPrevious"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:src="@drawable/ic_previous"
+                android:tint="?android:colorBackground" />
 
-        <ImageView
-            android:id="@+id/imgvNext"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:layout_marginStart="6dp"
-            android:src="@drawable/ic_next"
-            android:tint="?android:colorBackground" />
+            <ImageView
+                android:id="@+id/imgvStop"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:layout_marginStart="6dp"
+                android:src="@drawable/ic_stop"
+                android:tint="?android:colorBackground" />
+
+            <ImageView
+                android:id="@+id/imgvNext"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:layout_marginStart="6dp"
+                android:src="@drawable/ic_next"
+                android:tint="?android:colorBackground" />
+
+        </LinearLayout>
 
 
-        <ImageView
-            android:layout_columnWeight="4"
-            android:layout_gravity="fill_horizontal" />
-
-
+        <!-- Rate -->
         <TextView
-            android:layout_columnWeight="1"
+            android:id="@+id/tvRateLabel"
             android:layout_gravity="fill_horizontal|center_vertical"
+            android:layout_columnWeight="1"
             style="@style/Label.OnPrimaryColor"
-            android:text="@string/songs_order_label" />
+            android:text="@string/playback_rate_label" />
 
-        <ImageView
-            android:id="@+id/imgvSequential"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_sequential"
-            android:tint="?android:colorBackground" />
-
-        <ImageView
-            android:id="@+id/imgvShuffle"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_shuffle"
-            android:tint="?colorAccent" />
-
-        <ImageView
-            android:id="@+id/imgvLoop"
-            android:layout_width="@dimen/media_control_button_size"
-            android:layout_height="@dimen/media_control_button_size"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_loop"
-            android:tint="?android:colorBackground" />
+        <SeekBar
+            android:id="@+id/sbRate"
+            android:layout_columnWeight="4"
+            android:layout_gravity="fill_horizontal|center_vertical"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:progress="50"
+            android:max="150" />
 
         <TextView
-            android:id="@+id/tvSongsOrder"
+            android:id="@+id/tvRate"
             android:layout_gravity="fill_horizontal|center_vertical"
             android:layout_columnWeight="1"
             android:gravity="end"
             style="@style/Label.OnPrimaryColor"
-            android:text="@string/shuffle_order" />
-
-    </GridLayout>
+            android:text="x1.00" />
 
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp" >
-
+        <!-- Priority -->
         <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" >
+            android:layout_rowSpan="2"
+            android:layout_columnWeight="6"
+            android:layout_gravity="fill_horizontal|center_vertical" >
 
             <RatingBar
                 android:id="@+id/rbPriority"
@@ -187,63 +174,90 @@
                 android:isIndicator="false"
                 android:numStars="5"
                 android:stepSize="1.0"
-                android:progressTint="?android:colorBackground" />
+                android:progressTint="?android:colorBackground"
+                android:progressBackgroundTint="?android:colorPrimaryDark" />
 
         </FrameLayout>
 
-        <GridLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical"
-            android:columnCount="3" >
 
-            <TextView
-                android:layout_gravity="fill_horizontal"
-                style="@style/Label.OnPrimaryColor"
-                android:text="@string/playback_rate_label" />
+        <!-- Songs order -->
+        <TextView
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill_horizontal|center_vertical"
+            style="@style/Label.OnPrimaryColor"
+            android:text="@string/songs_order_label" />
 
-            <SeekBar
-                android:id="@+id/sbRate"
-                android:layout_columnWeight="4"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="6dp"
-                android:progress="50"
-                android:max="150" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_columnWeight="4"
+            android:layout_gravity="fill_horizontal|center_vertical"
+            android:gravity="center_horizontal" >
 
-            <TextView
-                android:id="@+id/tvRate"
-                android:layout_gravity="fill_horizontal"
-                android:layout_columnWeight="1"
-                android:gravity="end"
-                style="@style/Label.OnPrimaryColor"
-                android:text="x1.00" />
+            <ImageView
+                android:id="@+id/imgvSequential"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_sequential"
+                android:tint="?android:colorBackground" />
 
-            <TextView
-                android:layout_gravity="fill_horizontal"
-                style="@style/Label.OnPrimaryColor"
-                android:text="@string/volume_label" />
+            <ImageView
+                android:id="@+id/imgvShuffle"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_shuffle"
+                android:tint="?colorAccent" />
 
-            <SeekBar
-                android:id="@+id/sbVolume"
-                android:layout_gravity="fill_horizontal"
-                android:layout_columnWeight="4"
-                android:layout_marginLeft="6dp"
-                android:layout_marginRight="6dp"
-                android:progress="100"
-                android:max="100" />
+            <ImageView
+                android:id="@+id/imgvLoop"
+                android:layout_width="@dimen/media_control_button_size"
+                android:layout_height="@dimen/media_control_button_size"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_loop"
+                android:tint="?android:colorBackground" />
 
-            <TextView
-                android:id="@+id/tvVolume"
-                android:layout_gravity="fill_horizontal"
-                android:layout_columnWeight="1"
-                android:gravity="end"
-                style="@style/Label.OnPrimaryColor"
-                android:text="100%" />
+        </LinearLayout>
 
-        </GridLayout>
+        <TextView
+            android:id="@+id/tvSongsOrder"
+            android:layout_gravity="fill_horizontal|center_vertical"
+            android:layout_columnWeight="1"
+            android:gravity="end"
+            style="@style/Label.OnPrimaryColor"
+            android:text="@string/shuffle_order" />
 
-    </LinearLayout>
+
+        <!-- Volume -->
+        <TextView
+            android:layout_gravity="fill_horizontal"
+            android:layout_columnWeight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            style="@style/Label.OnPrimaryColor"
+            android:text="@string/volume_label" />
+
+        <SeekBar
+            android:id="@+id/sbVolume"
+            android:layout_gravity="fill_horizontal"
+            android:layout_columnWeight="4"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:progress="100"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/tvVolume"
+            android:layout_gravity="fill_horizontal"
+            android:layout_columnWeight="1"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="end"
+            style="@style/Label.OnPrimaryColor"
+            android:text="100%" />
+
+    </GridLayout>
 
 </LinearLayout>

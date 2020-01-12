@@ -36,7 +36,7 @@
 
     <!-- Base style for a small label -->
     <style name="Label">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
     <!-- Style for a small label having android:background="?colorPrimary". -->
@@ -52,7 +52,7 @@
 
     <!-- Base style for a label which is not limited (much) in space -->
     <style name="LargerLabel">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">15sp</item>
     </style>
 
     <!-- Style for LargerLabel having android:background="?colorPrimary". -->

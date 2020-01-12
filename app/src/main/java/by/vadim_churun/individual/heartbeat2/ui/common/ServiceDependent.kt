@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.ui
+package by.vadim_churun.individual.heartbeat2.ui.common
 
 import by.vadim_churun.individual.heartbeat2.service.HeartBeatMediaService
 
