@@ -23,15 +23,21 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
+    private var retainedPosition: Int? = null
+    private val KEY_RETAINED_POSITION = "retainPos"
+
     private fun displaySongs(songs: SongsList) {
         val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
-        val lastPosition = layoutMan?.findFirstVisibleItemPosition()
+        val lastPosition = retainedPosition?.also {
+            // This field is used only once.
+            retainedPosition = null
+        } ?:layoutMan?.findFirstVisibleItemPosition()
         recvSongs.layoutManager = layoutMan
             ?: LinearLayoutManager(super.requireContext())
         val newAdapter = SongsCollectionAdapter(super.requireContext(), songs)
         recvSongs.swapAdapter(newAdapter, true)
 
-        // Preserve the scrolled position:
+        // Preserve the previously scrolled position:
         lastPosition?.also { recvSongs.scrollToPosition(it) }
     }
 
@@ -58,6 +64,25 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
         fabCurrent.layoutParams = params
     }
 
+    private fun navigateCurrentSong() {
+        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
+        val songPosition = adapter.highlightedPosition ?: return
+
+        val layoutMan = recvSongs.layoutManager as LinearLayoutManager
+        val firstPosition = layoutMan.findFirstVisibleItemPosition()
+        val lastPosition = layoutMan.findLastVisibleItemPosition()
+        val middlePosition = (firstPosition+lastPosition)/2
+        if(songPosition < middlePosition) {
+            // Scroll up. Song by default will appear at the top. Move it down.
+            val delta = middlePosition - firstPosition
+            recvSongs.smoothScrollToPosition(songPosition - delta)
+        } else {
+            // Move it up.
+            val delta = lastPosition - middlePosition
+            recvSongs.smoothScrollToPosition(songPosition + delta)
+        }
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
@@ -67,7 +92,19 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
         = inflater.inflate(R.layout.songs_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        savedInstanceState?.getInt(KEY_RETAINED_POSITION)?.also {
+            retainedPosition = it
+        }
         locateFindCurrentFab()
+        fabCurrent.setOnClickListener { navigateCurrentSong() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
+        layoutMan?.findFirstVisibleItemPosition()?.also {
+            outState.putInt(KEY_RETAINED_POSITION, it)
+        }
     }
 
 
@@ -142,5 +179,15 @@ class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDepen
                     showSyncErrorDialog(state.sourceName, state.cause)
             }
         }
+    }
+
+    override fun render(state: PlaybackState) {
+        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
+        val playingSong = when(state) {
+            is PlaybackState.Playing -> state.song
+            is PlaybackState.Paused  -> state.song
+            else -> null
+        } ?: return
+        adapter.highlightSong(playingSong.ID)
     }
 }

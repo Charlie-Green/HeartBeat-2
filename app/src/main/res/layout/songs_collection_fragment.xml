@@ -20,7 +20,8 @@
         app:fabCustomSize="48dp"
         app:backgroundTint="?colorPrimary"
         android:src="@drawable/ic_find_current_song"
-        app:tint="?android:colorBackground" />
+        app:tint="?android:colorBackground"
+        android:tooltipText="@string/navigate_current_song" />
 
     <ProgressBar
         android:id="@+id/prbSync"

@@ -1,5 +1,6 @@
 package by.vadim_churun.individual.heartbeat2.presenter.song
 
+import by.vadim_churun.individual.heartbeat2.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.model.state.SyncState
 import io.reactivex.Observable
@@ -11,4 +12,5 @@ interface SongsCollectionUI {
     fun setPriorityIntent(): Observable<SongsCollectionAction.SetPriority>
     fun render(state: SongsCollectionState)
     fun render(state: SyncState)
+    fun render(state: PlaybackState)
 }

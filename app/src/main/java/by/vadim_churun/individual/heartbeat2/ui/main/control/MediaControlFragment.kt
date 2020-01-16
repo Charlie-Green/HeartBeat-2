@@ -96,6 +96,7 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
     }
 
     private fun setPeekHeight() {
+        val res = super.getResources()
         val v = super.requireView().apply { measure(0, 0) }
         BottomSheetBehavior.from(v).apply {
             peekHeight = tvTitle.measuredHeight
@@ -103,6 +104,9 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
                 .plus(sbPosition.measuredHeight)
                 .plus(imgvPlayPause.measuredHeight)
                 .plus(v.paddingBottom)
+                .plus(res.getDimensionPixelSize(R.dimen.media_control_line_margin_small))
+                .plus(res.getDimensionPixelSize(R.dimen.media_control_line_margin))
+                .plus(res.getDimensionPixelSize(R.dimen.media_control_line_margin_big))
             state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }

@@ -41,6 +41,12 @@ class SongsCollectionPresenter {
                 ui.render(state)
             }.subscribe()
 
+    private fun subscribePlaybackState(service: HeartBeatMediaService, ui: SongsCollectionUI)
+        = service.observablePlaybackState()
+            .doOnNext { state ->
+                ui.render(state)
+            }.subscribe()
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////
     // BIND/UNBIND:
@@ -56,7 +62,8 @@ class SongsCollectionPresenter {
             subscribeDecodeArt(service, ui),
             subscribeSetPriority(service, ui),
             subscribeCollectionState(service, ui),
-            subscribeSyncState(service, ui)
+            subscribeSyncState(service, ui),
+            subscribePlaybackState(service, ui)
         )
     }
 

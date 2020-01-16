@@ -32,6 +32,38 @@ class SongsCollectionAdapter(
         super.notifyItemChanged(position)
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // HIGHLIGHTING A SONG:
+
+    private var indexHighlight = -1
+
+    val highlightedPosition
+        get() = if(indexHighlight >= 0) indexHighlight else null
+
+    fun highlightSong(songID: Int) {
+        val newIndex = songs.indexOf(songID)
+        when(newIndex) {
+            indexHighlight -> { /* Do nothing. */ }
+
+            null -> {
+                // Set no highlighting.
+                val oldIndex = indexHighlight
+                indexHighlight = -1
+                if(oldIndex >= 0)
+                    super.notifyItemChanged(oldIndex)  // Remove selection here.
+            }
+
+            else -> {
+                // Highlight the new item.
+                val oldIndex = indexHighlight
+                indexHighlight = newIndex
+                super.notifyItemChanged(oldIndex)  // Remove the previous selection.
+                super.notifyItemChanged(newIndex)  // Set the new one.
+            }
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // ADAPTER IMPLEMENTATION:
 
@@ -53,6 +85,9 @@ class SongsCollectionAdapter(
             .let { SongViewHolder(it) }
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
+        // Potentially highlights this item:
+        holder.itemView.isSelected = (position == indexHighlight)
+
         val entry = songs[position]
         holder.tvTitle.text = entry.stub.displayTitle
         holder.tvArtist.text = entry.stub.displayArtist

@@ -6,5 +6,8 @@
     <dimen name="layout_padding_small">6dp</dimen>
     <dimen name="media_control_button_size">32dp</dimen>
     <dimen name="media_control_button_size_service">42dp</dimen>
+    <dimen name="media_control_line_margin_big">12dp</dimen>
+    <dimen name="media_control_line_margin">8dp</dimen>
+    <dimen name="media_control_line_margin_small">4dp</dimen>
     <dimen name="progress_bar_size">32dp</dimen>
 </resources>

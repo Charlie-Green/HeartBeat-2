@@ -41,7 +41,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp" >
+            android:layout_marginTop="@dimen/media_control_line_margin_small" >
 
             <TextView
                 android:id="@+id/tvPosition"
@@ -73,7 +73,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" >
+            android:layout_marginTop="@dimen/media_control_line_margin_big" >
 
             <ImageView
                 android:id="@+id/imgvPlayPause"
@@ -125,7 +125,7 @@
             android:columnCount="3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" >
+            android:layout_marginTop="@dimen/media_control_line_margin" >
 
 
             <!-- Rate -->

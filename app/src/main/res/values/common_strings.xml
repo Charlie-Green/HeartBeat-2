@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">HeartBeat 2</string>
     <string name="error">Error</string>
+    <string name="navigate_current_song">Navigate to Current</string>
     <string name="ok">OK</string>
     <string name="play_failed">Failed to play a song</string>
     <string name="songs_source_external_storage">External Storage</string>
