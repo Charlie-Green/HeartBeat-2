@@ -2,7 +2,16 @@
     <string name="app_name">HeartBeat 2</string>
     <string name="error">Error</string>
     <string name="navigate_current_song">Navigate to Current</string>
+    <string name="not_request_permissions">No, thanks</string>
     <string name="ok">OK</string>
+    <string name="one_more_step">One more step</string>
+    <string name="permissions_needed_f">
+        Some specific permissions need to be granted in order for HeartBeat 2
+        to fetch songs from %s.\n
+        1. Click "OK".\n
+        2. Click "Allow".\n
+        3. Enjoy your music!
+    </string>
     <string name="play_failed">Failed to play a song</string>
     <string name="songs_source_external_storage">External Storage</string>
     <string name="sync_error_f">HeartBeat 2 failed to fetch songs from %s.</string>

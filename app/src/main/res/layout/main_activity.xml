@@ -11,13 +11,13 @@
 
     <fragment
         android:id="@+id/fragmSongs"
-        android:name="by.vadim_churun.individual.heartbeat2.ui.main.song.SongsCollectionFragment"
+        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.song.SongsCollectionFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
     <fragment
         android:id="@+id/fragmMediaControl"
-        android:name="by.vadim_churun.individual.heartbeat2.ui.main.control.MediaControlFragment"
+        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.control.MediaControlFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"

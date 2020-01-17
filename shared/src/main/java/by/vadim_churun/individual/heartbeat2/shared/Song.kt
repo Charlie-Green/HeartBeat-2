@@ -1,4 +1,3 @@
-
 package by.vadim_churun.individual.heartbeat2.shared
 
 

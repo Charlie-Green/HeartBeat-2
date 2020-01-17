@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="by.vadim_churun.individual.heartbeat2.storage" >
+    package="by.vadim_churun.individual.heartbeat2.shared" >
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
