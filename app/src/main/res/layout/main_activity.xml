@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout for .ui.main.HeartBeatMainActivity. -->
+
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".HeartBeatMainActivity" >
+    tools:context=".ui.main.HeartBeatMainActivity" >
 
-    <TextView
-        android:layout_width="wrap_content"
+    <fragment
+        android:id="@+id/fragmSongs"
+        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.song.SongsCollectionFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <fragment
+        android:id="@+id/fragmMediaControl"
+        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.control.MediaControlFragment"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textSize="21sp"
-        android:text="@string/app_name" />
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_hideable="false"
+        app:behavior_peekHeight="40dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

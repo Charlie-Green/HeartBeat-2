@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="play_failed_message">Failed to play %s the song.</string>
+    <string name="playback_rate_label">Rate:</string>
+    <string name="sequential_order">Sequential</string>
+    <string name="loop_order">Loop</string>
+    <string name="shuffle_order">Shuffle</string>
+    <string name="song_priority_label">Priority:</string>
+    <string name="songs_order_label">Order:</string>
+    <string name="unknown_artist">[Unknown artist]</string>
+    <string name="volume_label">Volume:</string>
+</resources>

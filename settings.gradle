@@ -1,2 +1,2 @@
-include ':app', ':storage', ':entity'
-rootProject.name='HeartBeat'
+include ':app', ':shared', ':storage'
+rootProject.name='HeartBeat 2'

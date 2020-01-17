@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Default application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/default_primary</item>
+        <item name="colorPrimaryDark">@color/default_primary_dark</item>
+        <item name="colorAccent">@color/default_accent</item>
+        <item name="colorSecondary">@color/default_selected</item>    <!-- For selection -->
+        <item name="android:textColor">@color/default_text</item>
+        <item name="android:subtitle">@color/default_subtitle</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
+    <!-- Theme for a ProgressBar which wants to be of ?colorPrimary -->
+    <style name="ProgressBarPrimaryColorTheme" parent="Widget.AppCompat.ProgressBar">
+        <item name="colorAccent">?colorPrimary</item>
+    </style>
+
+</resources>
