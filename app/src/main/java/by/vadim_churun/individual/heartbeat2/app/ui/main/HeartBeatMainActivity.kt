@@ -3,6 +3,7 @@ package by.vadim_churun.individual.heartbeat2.app.ui.main
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -11,6 +12,7 @@ import by.vadim_churun.individual.heartbeat2.app.presenter.service.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.main_activity.*
 
 
@@ -70,8 +72,8 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
         if(preventFragmentsOverlapCalled) return
         preventFragmentsOverlapCalled = true
 
-        fun setSongsFragmentMargin(bottomMargin: Int) {
-            val v = fragmSongs.requireView()
+        fun setTabsPartMargin(bottomMargin: Int) {
+            val v = vlltTabsPart
             val params = v.layoutParams as CoordinatorLayout.LayoutParams?
                 ?: CoordinatorLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             params.bottomMargin = bottomMargin
@@ -80,16 +82,24 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
 
         val vMediaControl = fragmMediaControl.requireView()
         val behav = BottomSheetBehavior.from(vMediaControl)
-        setSongsFragmentMargin(behav.peekHeight)
+        setTabsPartMargin(behav.peekHeight)
         behav.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 val deltaHeight = slideOffset.times(bottomSheet.height - behav.peekHeight).toInt()
-                setSongsFragmentMargin(behav.peekHeight + deltaHeight)
+                setTabsPartMargin(behav.peekHeight + deltaHeight)
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int)
             {   }
         })
+    }
+
+    private fun setupTabs() {
+        val tabsAdapter = MainActivityTabsAdapter(this)
+        tabPager.adapter = tabsAdapter
+        TabLayoutMediator(tabLayout, tabPager) { tab, position ->
+            tab.text = tabsAdapter.labelAt(super.getResources(), position)
+        }.attach()
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +108,7 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         super.setContentView(R.layout.main_activity)
+        setupTabs()
     }
 
     override fun onStart() {
@@ -114,5 +125,10 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     override fun onStop() {
         unbindPresenter()
         super.onStop()
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        tabPager.requestDisallowInterceptTouchEvent(true)
+        return true
     }
 }

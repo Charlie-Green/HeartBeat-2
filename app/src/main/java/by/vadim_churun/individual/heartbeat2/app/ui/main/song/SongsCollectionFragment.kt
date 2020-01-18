@@ -7,7 +7,7 @@ import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
@@ -19,7 +19,7 @@ import io.reactivex.Observable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: DialogFragment(), SongsCollectionUI, ServiceDependent {
+class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 

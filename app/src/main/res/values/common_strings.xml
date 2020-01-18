@@ -13,6 +13,8 @@
         3. Enjoy your music!
     </string>
     <string name="play_failed">Failed to play a song</string>
+    <string name="plists_tab">Playlists</string>
     <string name="songs_source_external_storage">External Storage</string>
+    <string name="songs_tab">Songs</string>
     <string name="sync_error_f">HeartBeat 2 failed to fetch songs from %s.</string>
 </resources>

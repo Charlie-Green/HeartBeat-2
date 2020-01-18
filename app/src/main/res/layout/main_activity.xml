@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Layout for .ui.main.HeartBeatMainActivity. -->
 
+<!-- Layout for .ui.main.HeartBeatMainActivity. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,11 +9,29 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.HeartBeatMainActivity" >
 
-    <fragment
-        android:id="@+id/fragmSongs"
-        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.song.SongsCollectionFragment"
+    <LinearLayout
+        android:id="@+id/vlltTabsPart"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabMaxWidth="0dp"
+            app:tabGravity="fill"
+            app:tabMode="fixed"
+            app:tabBackground="?colorPrimaryDark"
+            app:tabTextColor="?android:colorBackground"
+            app:tabIndicatorColor="?colorAccent" />
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/tabPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
 
     <fragment
         android:id="@+id/fragmMediaControl"
