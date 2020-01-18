@@ -27,7 +27,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     private val KEY_RETAINED_POSITION = "retainPos"
 
     private fun displaySongs(songs: SongsList) {
-        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
+        val layoutMan = recvSongs?.layoutManager as LinearLayoutManager?
         val lastPosition = retainedPosition?.also {
             // This field is used only once.
             retainedPosition = null
@@ -65,7 +65,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     }
 
     private fun navigateCurrentSong() {
-        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
+        val adapter = recvSongs?.adapter as SongsCollectionAdapter? ?: return
         val songPosition = adapter.highlightedPosition ?: return
 
         val layoutMan = recvSongs.layoutManager as LinearLayoutManager
@@ -175,7 +175,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     override fun render(state: SyncState) {
         when(state) {
             is SyncState.Active -> {
-                val adapter = recvSongs.adapter as SongsCollectionAdapter?
+                val adapter = recvSongs?.adapter as SongsCollectionAdapter?
                 prbSync.isVisible = (adapter == null || adapter.itemCount == 0)
             }
 
@@ -201,7 +201,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     }
 
     override fun render(state: PlaybackState) {
-        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
+        val adapter = recvSongs?.adapter as SongsCollectionAdapter? ?: return
         val playingSong = when(state) {
             is PlaybackState.Playing -> state.song
             is PlaybackState.Paused  -> state.song

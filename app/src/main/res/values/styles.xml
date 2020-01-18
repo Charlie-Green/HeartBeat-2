@@ -1,6 +1,6 @@
 <resources>
 
-    <!-- Base style for a title text -->
+    <!-- Base style for title text -->
     <style name="Title">
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
@@ -13,6 +13,22 @@
 
     <!-- Style for title text on default background. -->
     <style name="Title.OnDefaultBackground">
+        <item name="android:textColor">?colorPrimary</item>
+    </style>
+
+
+    <!-- Base style for big title text. -->
+    <style name="Title.Big">
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <!-- Style for big title text having android:background="?colorPrimary". -->
+    <style name="Title.Big.OnPrimaryColor">
+        <item name="android:textColor">?android:colorBackground</item>
+    </style>
+
+    <!-- Style for big title text on default background. -->
+    <style name="Title.Big.OnDefaultBackground">
         <item name="android:textColor">?colorPrimary</item>
     </style>
 

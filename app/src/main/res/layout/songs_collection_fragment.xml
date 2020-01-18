@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin_small"
-        app:fabCustomSize="48dp"
+        app:fabCustomSize="@dimen/fab_size_default"
         app:backgroundTint="?colorPrimary"
         android:src="@drawable/ic_find_current_song"
         app:tint="?android:colorBackground"

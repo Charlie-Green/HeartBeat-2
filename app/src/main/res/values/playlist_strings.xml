@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_playlist">Add a playlist</string>
+    <string name="delete_playlist">Delete this playlist</string>
+    <string name="edit_playlist">Edit this playlist</string>
+</resources>

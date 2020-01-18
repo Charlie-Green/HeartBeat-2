@@ -3,6 +3,7 @@
     <dimen name="fab_margin_small">24dp</dimen>
     <dimen name="fab_margin_medium">48dp</dimen>
     <dimen name="fab_margin_big">72dp</dimen>
+    <dimen name="fab_size_default">48dp</dimen>
     <dimen name="layout_padding_small">6dp</dimen>
     <dimen name="media_control_button_size">32dp</dimen>
     <dimen name="media_control_button_size_service">42dp</dimen>

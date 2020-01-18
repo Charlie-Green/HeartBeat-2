@@ -7,6 +7,7 @@
     <color name="default_subtitle">#606078</color>
     <color name="default_selected">#c8c8f8</color>
 
+    <color name="danger">#f02020</color>
     <color name="media_control_button_unselected">?android:colorBackground</color>
     <color name="media_control_button_selected">?colorAccent</color>
     <color name="media_service_notif_primary">@color/default_primary</color>

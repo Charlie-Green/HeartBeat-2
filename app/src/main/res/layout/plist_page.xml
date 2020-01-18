@@ -4,13 +4,63 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" >
 
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:id="@+id/imgvArt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.75"
+        android:src="@drawable/ic_playlist" />
+
+    <GridLayout
+        android:columnCount="2"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Playlist" />
+        android:layout_gravity="top"  >
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_columnSpan="2"
+            android:layout_gravity="fill_horizontal"
+            style="@style/Title.Big.OnDefaultBackground"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:text="Title" />
+
+
+        <!-- Duration -->
+        <ImageView
+            android:layout_width="@dimen/media_control_button_size"
+            android:layout_height="@dimen/media_control_button_size"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_play"
+            android:tint="?colorPrimary" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            style="@style/LargerLabel.OnDefaultBackground"
+            android:text="00:00" />
+
+
+        <!-- Song number -->
+        <ImageView
+            android:layout_width="@dimen/media_control_button_size"
+            android:layout_height="@dimen/media_control_button_size"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/song_art_default"
+            android:tint="?colorPrimary" />
+
+        <TextView
+            android:id="@+id/tvSongCount"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            style="@style/LargerLabel.OnDefaultBackground"
+            android:text="0" />
+
+    </GridLayout>
 
 </FrameLayout>
