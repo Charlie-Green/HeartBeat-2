@@ -1,15 +1,23 @@
 package by.vadim_churun.individual.heartbeat2.app.ui.main.plist
 
 import android.content.Context
-import android.graphics.Color
+import android.graphics.Bitmap
 import android.util.TypedValue
 import android.view.*
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import by.vadim_churun.individual.heartbeat2.app.R
+import by.vadim_churun.individual.heartbeat2.app.model.obj.PlaylistsCollection
+import by.vadim_churun.individual.heartbeat2.app.presenter.plist.PlaylistsCollectionAction
+import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
+import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.plist_page.view.*
 
 
-class PlaylistsCollectionAdapter:
+class PlaylistsCollectionAdapter(
+    val playlists: PlaylistsCollection,
+    val decodeArtSubject: Subject<in PlaylistsCollectionAction.DecodeArt>
+):
 RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
     ////////////////////////////////////////////////////////////////////////////////////////
     // VIEW HOLDER:
@@ -37,12 +45,48 @@ RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
             colorPrimary
         }
 
+    fun setArt(playlistID: Int, art: Bitmap) {
+        val playlistIndex = playlists.indexOf(playlistID) ?: return
+        playlists.setArtAt(playlistIndex, art)
+        super.notifyItemChanged(playlistIndex + 1)
+    }
+
+    private fun ImageView.setInsteadOfArt(resID: Int) {
+        setImageResource(resID)
+        val plistDrawable = this.drawable
+        plistDrawable.setTint( getPrimaryColor(this.context) )
+        setImageDrawable(plistDrawable)
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // ADAPTER IMPLEMENTATION:
 
+    private fun bindPlaylist(holder: PlaylistViewHolder, playlistIndex: Int) {
+        val plist = playlists[playlistIndex]
+        holder.tvTitle.text = plist.title
+        holder.tvTitle.isSelected = true  // Let the title marquee.
+        holder.tvSongCount.text = "${plist.songCount}"
+        holder.tvDuration.text = UiUtils.timeString(plist.totalDuration)
+
+        val art = playlists.artAt(playlistIndex)
+        if(art == null) {
+            holder.imgvArt.setInsteadOfArt(R.drawable.ic_playlist)
+            if(plist.artUri != null)
+                decodeArtSubject.onNext(PlaylistsCollectionAction.DecodeArt(plist.ID))
+        } else {
+            holder.imgvArt.setImageBitmap(art)
+        }
+    }
+
+    private fun bindAllSongsItem(holder: PlaylistViewHolder) {
+        holder.imgvArt.setInsteadOfArt(R.drawable.ic_all_songs)
+        holder.tvTitle.setText(R.string.all_songs_label)
+    }
+
+
     override fun getItemCount()
-        = 3
+        = playlists.size + 1  // +1 for "All Songs"
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
         = LayoutInflater.from(parent.context)
@@ -50,11 +94,9 @@ RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
             .let { PlaylistViewHolder(it) }
 
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
-        holder.imgvArt.setImageResource(R.drawable.ic_playlist)
-        val plistDrawable = holder.imgvArt.drawable
-        plistDrawable.setTint(getPrimaryColor(holder.itemView.context))
-        holder.imgvArt.setImageDrawable(plistDrawable)
-        holder.tvTitle.text = "Playlist ${position+1} ".repeat(8)
-        holder.tvTitle.isSelected = true  // Let the title marquee.
+        if(position == 0)
+            bindAllSongsItem(holder)          // Position 0 is for the "All Songs" item.
+        else
+            bindPlaylist(holder, position-1)  // Position J is for the playlist #(J-1), J >= 1.
     }
 }

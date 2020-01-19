@@ -23,6 +23,7 @@
             android:id="@+id/tvTitle"
             android:layout_columnSpan="2"
             android:layout_gravity="fill_horizontal"
+            android:gravity="center_horizontal"
             style="@style/Title.Big.OnDefaultBackground"
             android:singleLine="true"
             android:ellipsize="marquee"
