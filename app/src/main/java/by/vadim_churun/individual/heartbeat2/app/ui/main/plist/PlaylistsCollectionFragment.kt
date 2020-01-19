@@ -43,6 +43,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
         presenter.bind(service, this)
     }
 
+    /* ServiceDependent */
     override fun notifyServiceUnbound() {
         presenter.unbind()
     }

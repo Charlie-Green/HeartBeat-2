@@ -7,7 +7,6 @@ import io.reactivex.disposables.CompositeDisposable
 /** MVI Presenter for [PlaylistsCollectionUI] **/
 class PlaylistsCollectionPresenter {
     private val disposable = CompositeDisposable()
-    private var bound = false
 
     private fun subscribeDecodeArt(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
         = ui.decodeArtIntent()
@@ -20,12 +19,10 @@ class PlaylistsCollectionPresenter {
 
 
     fun bind(service: HeartBeatMediaService, ui: PlaylistsCollectionUI) {
-        if(bound) return
-        bound = true
         disposable.addAll( subscribeDecodeArt(service, ui) )
     }
 
     fun unbind() {
-        // TODO
+        disposable.clear()
     }
 }

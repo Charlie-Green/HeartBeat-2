@@ -3,7 +3,6 @@ package by.vadim_churun.individual.heartbeat2.app.model.logic.internal
 import android.content.Context
 import by.vadim_churun.individual.heartbeat2.app.db.HeartBeatDatabase
 import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
-import by.vadim_churun.individual.heartbeat2.shared.SongsSource
 import javax.inject.Inject
 
 
@@ -12,9 +11,26 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
     private val songsDAO
         get() = HeartBeatDatabase.get(appContext).songsDao
 
+    private val playlistsDAO
+        get() = HeartBeatDatabase.get(appContext).playlistsDao
+
+    private val playlistItemsDAO
+        get() = HeartBeatDatabase.get(appContext).playlistItemsDao
+
+    fun rawSongs()
+        = this.songsDAO.get()
+
     fun observableSongs()
         = this.songsDAO.getRx()
 
-    fun updateSource(sourceClass: Class<out SongsSource>, newSongs: List<SongEntity>)
-        = this.songsDAO.updateSource(sourceClass, newSongs)
+    fun updateSongs(removedIds: List<Int>, added: List<SongEntity>) {
+        if(removedIds.isEmpty() && added.isEmpty()) return
+        HeartBeatDatabase.get(appContext).runInTransaction {
+            if(removedIds.isNotEmpty()) {
+                this.playlistItemsDAO.deleteForSongs(removedIds)
+                this.songsDAO.delete(removedIds)
+            }
+            this.songsDAO.addOrUpdate(added)
+        }
+    }
 }

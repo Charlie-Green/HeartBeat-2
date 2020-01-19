@@ -1,6 +1,7 @@
 package by.vadim_churun.individual.heartbeat2.app.ui.main
 
 import android.content.res.Resources
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.vadim_churun.individual.heartbeat2.app.R
@@ -21,7 +22,7 @@ FragmentStateAdapter(mainActivity) {
     override fun getItemCount()
         = 2
 
-    override fun createFragment(position: Int)
+    override fun createFragment(position: Int): Fragment
         = when(position) {
             0 -> SongsCollectionFragment()
             1 -> PlaylistsCollectionFragment()

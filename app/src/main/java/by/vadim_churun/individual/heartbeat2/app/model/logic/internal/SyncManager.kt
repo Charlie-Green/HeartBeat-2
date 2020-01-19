@@ -6,7 +6,7 @@ import androidx.core.content.ContextCompat
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
 import by.vadim_churun.individual.heartbeat2.app.model.state.SyncState
-import by.vadim_churun.individual.heartbeat2.shared.SongsSource
+import by.vadim_churun.individual.heartbeat2.shared.*
 import by.vadim_churun.individual.heartbeat2.storage.ExternalStorageSongsSource
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
@@ -37,10 +37,26 @@ class SyncManager @Inject constructor(
             }.let { appContext.getString(it) }
 
         fun sync() {
-            val songEntities = source.fetch().map { song ->
-                SongEntity.fromSong(song, source.javaClass)
+            val old = dbMan.rawSongs(); val new = source.fetch()
+            val added = HashMap<Int, Song>()       // Songs added after this sync.
+            val removedIds = mutableListOf<Int>()  // Songs removed from this source.
+
+            for(song in new) {
+                added[song.ID] = song
             }
-            dbMan.updateSource(source.javaClass, songEntities)
+            // Same elements in 'added' as in 'new'.
+
+            for(song in old) {
+                if(added.containsKey(song.ID))
+                    added.remove(song.ID)   // This song is already known, so not 'added'.
+                else
+                    removedIds.add(song.ID) // This song is not in the source anymore.
+            }
+
+            val addedEntities = added.map { pair ->
+                SongEntity.fromSong(pair.value, source.javaClass)
+            }
+            dbMan.updateSongs(removedIds, addedEntities)
         }
     }
 
