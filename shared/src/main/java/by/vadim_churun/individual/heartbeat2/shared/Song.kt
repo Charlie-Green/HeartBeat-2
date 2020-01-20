@@ -8,5 +8,6 @@ open class Song(
     val artist: String?,
     val duration: Long,
     val filename: String?,
-    val contentUri: String
+    val contentUri: String,
+    val sourceClass: Class<out SongsSource>
 )

@@ -10,9 +10,10 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.presenter.service.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
+import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayoutMediator
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.main_activity.*
 
 
@@ -21,16 +22,24 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     // MVI:
 
     private val presenter = ServiceBindingPresenter()
+    private var service: HeartBeatMediaService? = null
+
+    private fun letFragmentsUseBoundService() {
+        val serv = service ?: return
+        val fragmMan = super.getSupportFragmentManager()
+        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
+            dependent.useBoundService(serv)
+        }
+    }
+
 
     override val boundContext: Context
         get() = this
 
     /* ServiceBoundUI */
     override fun onConnected(service: HeartBeatMediaService) {
-        val fragmMan = super.getSupportFragmentManager()
-        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
-            dependent.useBoundService(service)
-        }
+        this.service = service
+        letFragmentsUseBoundService()
     }
 
 
@@ -51,6 +60,7 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     // UI:
 
     private var preventFragmentsOverlapCalled = false
+    private val disposable = CompositeDisposable()
 
     private fun hideSystemUi() {
         val FLAGS =
@@ -96,6 +106,13 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
 
     private fun setupTabs() {
         val tabsAdapter = MainActivityTabsAdapter(this)
+        tabsAdapter.observableFragmentCreated()
+            .doOnNext { fragment ->
+                if(fragment is ServiceDependent)
+                    service?.also { fragment.useBoundService(it) }
+            }.subscribe()
+            .also { disposable.add(it) }
+
         tabPager.adapter = tabsAdapter
         TabLayoutMediator(tabLayout, tabPager) { tab, position ->
             tab.text = tabsAdapter.labelAt(super.getResources(), position)
@@ -124,6 +141,7 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
 
     override fun onStop() {
         unbindPresenter()
+        disposable.clear()
         super.onStop()
     }
 

@@ -82,6 +82,7 @@ class PlayerRepository @Inject constructor(
                 it.duration,
                 it.filename,
                 it.contentUri,
+                it.sourceClass,
                 player.rate,
                 player.volume,
                 newPriority

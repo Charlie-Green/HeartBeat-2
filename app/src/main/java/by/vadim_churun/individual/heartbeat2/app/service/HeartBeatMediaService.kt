@@ -6,6 +6,8 @@ import android.os.Binder
 import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.app.HeartBeatApplication
 import by.vadim_churun.individual.heartbeat2.app.model.logic.*
+import by.vadim_churun.individual.heartbeat2.app.model.logic.PlaylistsCollectionRepository
+import by.vadim_churun.individual.heartbeat2.app.model.obj.PlaylistHeader
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -20,6 +22,7 @@ class HeartBeatMediaService: Service() {
     @Inject lateinit var notifFact: MediaNotificationFactory
     @Inject lateinit var songsRepo: SongsCollectionRepository
     @Inject lateinit var playerRepo: PlayerRepository
+    @Inject lateinit var plistsRepo: PlaylistsCollectionRepository
 
     private fun inject() {
         val app = super.getApplication() as HeartBeatApplication
@@ -80,6 +83,10 @@ class HeartBeatMediaService: Service() {
     }
 
     fun requestArtDecode(song: Song) {
+        songsRepo.requestArtDecode(song)
+    }
+
+    fun requestArtDecode(plistHeader: PlaylistHeader) {
         // TODO
     }
 
@@ -96,6 +103,9 @@ class HeartBeatMediaService: Service() {
 
     fun observablePlaybackState()
         = playerRepo.observableState()
+
+    fun observablePlaylistsCollectionState()
+        = plistsRepo.observableState()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////

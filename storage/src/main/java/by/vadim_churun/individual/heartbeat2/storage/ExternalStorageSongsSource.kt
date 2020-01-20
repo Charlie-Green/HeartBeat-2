@@ -93,7 +93,8 @@ class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
                     curs.artist,
                     durationFor(contentUri),
                     curs.filename,
-                    contentUri.toString()
+                    contentUri.toString(),
+                    this.javaClass
                 )
                 songs.add(song)
             }

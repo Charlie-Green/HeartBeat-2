@@ -73,7 +73,7 @@ RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
         if(art == null) {
             holder.imgvArt.setInsteadOfArt(R.drawable.ic_playlist)
             if(plist.artUri != null)
-                decodeArtSubject.onNext(PlaylistsCollectionAction.DecodeArt(plist.ID))
+                decodeArtSubject.onNext(PlaylistsCollectionAction.DecodeArt(plist))
         } else {
             holder.imgvArt.setImageBitmap(art)
         }

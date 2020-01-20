@@ -8,6 +8,9 @@ import javax.inject.Inject
 
 /** This class is responsible for communicating with the database. **/
 class DatabaseManager @Inject constructor(val appContext: Context) {
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // PRIVATE:
+
     private val songsDAO
         get() = HeartBeatDatabase.get(appContext).songsDao
 
@@ -16,6 +19,10 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
 
     private val playlistItemsDAO
         get() = HeartBeatDatabase.get(appContext).playlistItemsDao
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // SONGS:
 
     fun rawSongs()
         = this.songsDAO.get()
@@ -33,4 +40,11 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
             this.songsDAO.addOrUpdate(added)
         }
     }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // PLAYLISTS:
+
+    fun observablePlaylistHeaders()
+        = this.playlistsDAO.headersRx()
 }

@@ -23,15 +23,8 @@ class SongEntity(
     /** Knowing what source a song came from is needed to request its art. **/
     @ColumnInfo(name="source")     val sourceClass: Class<out SongsSource>
 ) {
-    @Ignore private var correspondingSong: Song? = null
-
-    fun toSong()
-        = correspondingSong ?:
-            Song(ID, title, artist, duration, filename, contentUri)
-            .also { correspondingSong = it }
-
     companion object {
-        fun fromSong(song: Song, sourceClass: Class<out SongsSource>)
+        fun fromSong(song: Song)
             = SongEntity(
                 song.ID,
                 song.title,
@@ -39,7 +32,7 @@ class SongEntity(
                 song.duration,
                 song.filename,
                 song.contentUri,
-                sourceClass
-            ).apply { correspondingSong = song }
+                song.sourceClass
+            )
     }
 }

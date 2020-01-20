@@ -3,11 +3,9 @@ package by.vadim_churun.individual.heartbeat2.app.model.logic.internal
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
 import by.vadim_churun.individual.heartbeat2.app.model.state.SyncState
 import by.vadim_churun.individual.heartbeat2.shared.*
-import by.vadim_churun.individual.heartbeat2.storage.ExternalStorageSongsSource
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import javax.inject.Inject
@@ -18,26 +16,21 @@ import javax.inject.Singleton
 @Singleton
 class SyncManager @Inject constructor(
     private val appContext: Context,
-    sources: List<@JvmSuppressWildcards SongsSource>,
-    private val dbMan: DatabaseManager
+    private val dbMan: DatabaseManager,
+    private val sourcesMan: SongsSourcesManager
 ) {
     /////////////////////////////////////////////////////////////////////////////////////////
     // SOURCE WRAPPER:
 
-    private inner class SongsSourceWrapper(val source: SongsSource) {
+    private inner class SongsSourceWrapper(
+        val sourceMeta: SongsSourcesManager.SongsSourceMeta
+    ) {
         var nextSyncTime = 0L
         var lastErrorTime = 0L
         var waitPermissions = false
 
-        val name
-            get() = when(source) {
-                is ExternalStorageSongsSource -> R.string.songs_source_external_storage
-                else -> throw Exception(
-                    "Unknown ${SongsSource::class.java.simpleName}: ${this.javaClass.simpleName}" )
-            }.let { appContext.getString(it) }
-
         fun sync() {
-            val old = dbMan.rawSongs(); val new = source.fetch()
+            val old = dbMan.rawSongs(); val new = sourceMeta.source.fetch()
             val added = HashMap<Int, Song>()       // Songs added after this sync.
             val removedIds = mutableListOf<Int>()  // Songs removed from this source.
 
@@ -54,17 +47,17 @@ class SyncManager @Inject constructor(
             }
 
             val addedEntities = added.map { pair ->
-                SongEntity.fromSong(pair.value, source.javaClass)
+                SongEntity.fromSong(pair.value)
             }
             dbMan.updateSongs(removedIds, addedEntities)
         }
     }
 
-    private val sourceWrappers: List<SongsSourceWrapper>
-
-    init {
-        sourceWrappers = List(sources.size) { index ->
-            SongsSourceWrapper(sources[index])
+    private val sourceWrappers: List<SongsSourceWrapper> by lazy {
+        mutableListOf<SongsSourceWrapper>().apply {
+            sourcesMan.forEachSource { sourceMeta ->
+                this.add( SongsSourceWrapper(sourceMeta) )
+            }
         }
     }
 
@@ -96,14 +89,15 @@ class SyncManager @Inject constructor(
                 swrap.waitPermissions /* Sync impossible: missing permissions */ )
                 continue
 
-            val missingPermissions = swrap.source.permissions.filter { perm ->
+            val allPermissions = swrap.sourceMeta.source.permissions
+            val missingPermissions = allPermissions.filter { perm ->
                 val permStatus = ContextCompat.checkSelfPermission(appContext, perm)
                 permStatus != PackageManager.PERMISSION_GRANTED
             }
             if(missingPermissions.isNotEmpty()) {
                 swrap.waitPermissions = true
                 stateSubject.onNext(
-                    SyncState.MissingPermissions(swrap.name, missingPermissions) )
+                    SyncState.MissingPermissions(swrap.sourceMeta.name, missingPermissions) )
                 return
             }
 
@@ -118,7 +112,7 @@ class SyncManager @Inject constructor(
                 val now = System.currentTimeMillis()
                 SyncState.Error(
                     now - swrap.lastErrorTime >= ERROR_DISTURB_INTERVAL,
-                    swrap.name,
+                    swrap.sourceMeta.name,
                     thr
                 ).also {
                     stateSubject.onNext(it)
@@ -127,7 +121,7 @@ class SyncManager @Inject constructor(
                 }
             }
 
-            val syncPeriod = 1000L * swrap.source.recommendedSyncPeriod
+            val syncPeriod = 1000L * swrap.sourceMeta.source.recommendedSyncPeriod
             swrap.nextSyncTime = System.currentTimeMillis() + syncPeriod
         }
 

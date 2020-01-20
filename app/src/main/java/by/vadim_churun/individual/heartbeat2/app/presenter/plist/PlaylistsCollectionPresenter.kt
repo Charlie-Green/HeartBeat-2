@@ -11,18 +11,31 @@ class PlaylistsCollectionPresenter {
     private fun subscribeDecodeArt(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
         = ui.decodeArtIntent()
             .doOnNext { action ->
-                // TODO
+                service.requestArtDecode(action.plistHeader)
             }.subscribe()
 
     private fun subscribeState(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
-        = Unit  // TODO
+        = service.observablePlaylistsCollectionState()
+            .doOnNext { state ->
+                ui.render(state)
+            }.subscribe()
 
+
+    private var bound = false
 
     fun bind(service: HeartBeatMediaService, ui: PlaylistsCollectionUI) {
-        disposable.addAll( subscribeDecodeArt(service, ui) )
+        if(bound) return
+        bound = true
+
+        disposable.addAll(
+            subscribeDecodeArt(service, ui),
+            subscribeState(service, ui)
+        )
     }
 
     fun unbind() {
+        if(!bound) return
+        bound = false
         disposable.clear()
     }
 }

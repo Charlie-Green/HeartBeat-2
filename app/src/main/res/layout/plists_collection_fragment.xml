@@ -59,4 +59,14 @@
         app:tint="?android:colorBackground"
         android:tooltipText="@string/delete_playlist" />
 
+    <ProgressBar
+        android:id="@+id/prBar"
+        android:layout_width="@dimen/progress_bar_size"
+        android:layout_height="@dimen/progress_bar_size"
+        android:theme="@style/ProgressBarPrimaryColorTheme"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

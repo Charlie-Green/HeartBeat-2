@@ -8,8 +8,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistsCollectionState
 import by.vadim_churun.individual.heartbeat2.app.presenter.plist.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceDependent
-import by.vadim_churun.individual.heartbeat2.app.ui.common.VerticalCubePageTransformer
+import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.plists_collection_fragment.*
@@ -20,6 +19,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
     // UI:
 
     private var plistsTransformerSet = false
+
 
     private val currentAdapter
         = pagerPlists?.adapter as PlaylistsCollectionAdapter?
@@ -37,10 +37,15 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
     // PRESENTER:
 
     private val presenter = PlaylistsCollectionPresenter()
+    private var isViewCreated = false
+    private var service: HeartBeatMediaService? = null
 
     /* ServiceDependent */
     override fun useBoundService(service: HeartBeatMediaService) {
-        presenter.bind(service, this)
+        if(isViewCreated)
+            presenter.bind(service, this)
+        else
+            this.service = service
     }
 
     /* ServiceDependent */
@@ -63,11 +68,13 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
     override fun render(state: PlaylistsCollectionState) {
         when(state) {
             PlaylistsCollectionState.Preparing -> {
-                TODO()
+                prBar.visibility = View.VISIBLE
+                displayPlaylists( PlaylistsCollection.from(listOf()) )
             }
 
             is PlaylistsCollectionState.Prepared -> {
                 displayPlaylists(state.collection)
+                prBar.visibility = View.GONE
             }
 
             is PlaylistsCollectionState.ArtDecoded -> {
@@ -89,6 +96,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
         = inflater.inflate(R.layout.plists_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // TODO
+        isViewCreated = true
+        service?.also { useBoundService(it) }
     }
 }
