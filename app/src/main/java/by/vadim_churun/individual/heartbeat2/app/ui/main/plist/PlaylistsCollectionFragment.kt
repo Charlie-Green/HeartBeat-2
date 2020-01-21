@@ -9,6 +9,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistsCollection
 import by.vadim_churun.individual.heartbeat2.app.presenter.plist.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
+import com.jakewharton.rxbinding3.viewpager2.pageSelections
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.plists_collection_fragment.*
@@ -59,6 +60,14 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
 
     private val actionSubject = PublishSubject.create<PlaylistsCollectionAction>()
 
+    override fun openPlaylistIntent(): Observable<PlaylistsCollectionAction.OpenPlaylist>
+        = pagerPlists.pageSelections()
+            .map { position ->
+                val plist =  this.currentAdapter?.playlists?.get(position)
+                android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
+                PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )
+            }
+
     override fun decodeArtIntent(): Observable<PlaylistsCollectionAction.DecodeArt>
         = actionSubject
             .filter { it is PlaylistsCollectionAction.DecodeArt }
@@ -68,6 +77,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
     override fun render(state: PlaylistsCollectionState) {
         when(state) {
             PlaylistsCollectionState.Preparing -> {
+                android.util.Log.v("HbPlist", "Preparing")
                 prBar.visibility = View.VISIBLE
                 displayPlaylists( PlaylistsCollection.from(listOf()) )
             }

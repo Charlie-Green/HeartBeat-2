@@ -47,4 +47,11 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
 
     fun observablePlaylistHeaders()
         = this.playlistsDAO.headersRx()
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // PLAYLIST ITEMS:
+
+    fun observablePlaylistContent(playlistID: Int)
+        = this.playlistItemsDAO.playlistContentRx(playlistID)
 }

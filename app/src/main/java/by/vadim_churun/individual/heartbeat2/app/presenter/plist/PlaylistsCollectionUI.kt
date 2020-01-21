@@ -5,6 +5,7 @@ import io.reactivex.Observable
 
 
 interface PlaylistsCollectionUI {
+    fun openPlaylistIntent(): Observable<PlaylistsCollectionAction.OpenPlaylist>
     fun decodeArtIntent(): Observable<PlaylistsCollectionAction.DecodeArt>
     fun render(state: PlaylistsCollectionState)
 }

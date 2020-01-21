@@ -1,13 +1,15 @@
 package by.vadim_churun.individual.heartbeat2.app.model.logic
 
+import android.util.Log
 import by.vadim_churun.individual.heartbeat2.app.model.logic.internal.*
-import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
+import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.app.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -20,7 +22,8 @@ class SongsCollectionRepository @Inject constructor(
     private val dbMan: DatabaseManager,
     private val syncMan: SyncManager,
     private val stubMan: SongStubsManager,
-    private val sourcesMan: SongsSourcesManager
+    private val sourcesMan: SongsSourcesManager,
+    private val mapper: Mapper
 ) {
     //////////////////////////////////////////////////////////////////////////////////////////
     // INTERNAL:
@@ -36,7 +39,7 @@ class SongsCollectionRepository @Inject constructor(
             }.subscribe()
 
     private fun subscribeCollectionPrepared()
-        = observableState()
+        = observableCollectionPreparedState()
             .doOnNext { state ->
                 if(state is SongsCollectionState.CollectionPrepared)
                     collectMan.collection = state.songs
@@ -47,31 +50,42 @@ class SongsCollectionRepository @Inject constructor(
     // PREPARING COLLECTION:
 
     private var cachedPreparedState: SongsCollectionState.CollectionPrepared? = null
+    private val subjectPlaylistId = BehaviorSubject.create<OptionalID>()
+    private var rxPreparedState: Observable<SongsCollectionState>? = null
 
-    private fun buildCollectionPreparedState(): Observable<SongsCollectionState>
-        = dbMan.observableSongs()
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.computation())
+    private fun observablePlaylistContent(
+        playlistID: OptionalID
+    ): Observable< List<SongWithSettings> >
+        = playlistID.idOrNull?.let {
+            dbMan.observablePlaylistContent(it)  // Songs from a specific playlist
+                .map { songsInPlaylist ->
+                    // List<SongInPlaylistView> -> List<SongWithSettings>
+                    songsInPlaylist.map { songInPlaylist ->
+                        mapper.songWithSettings(songInPlaylist)
+                    }
+                }.subscribeOn(Schedulers.io())
+        } ?: dbMan.observableSongs()            // All songs.
             .map { songEntities ->
-                // TODO: Filter, etc.
-
+                // List<SongEntity> -> List<SongWithSettings>
                 songEntities.map { songEntity ->
-                    // For now, just provide the default settings for each song.
-                    // Later, that settings will be made customizable.
-                    SongWithSettings(
-                        songEntity.ID,
-                        songEntity.title,
-                        songEntity.artist,
-                        songEntity.duration,
-                        songEntity.filename,
-                        songEntity.contentUri,
-                        songEntity.sourceClass,
-                        /* rate:     */ 1f,
-                        /* volume:   */ 1f,
-                        /* priority: */ 3
-                    )
+                    mapper.songWithSettings(songEntity)
                 }
-            }.map<SongsCollectionState> { songs ->
+            }.subscribeOn(Schedulers.io())
+
+    private fun observableCollectionPreparedState(): Observable<SongsCollectionState>
+        = rxPreparedState ?: subjectPlaylistId
+            .startWith( OptionalID.wrap(null) )
+            .distinctUntilChanged { oid1, oid2 ->
+                oid1.idOrNull == oid2.idOrNull
+            }.map { optionalID ->
+                Log.v("HbPlist", "Opening playlist ${optionalID.idOrNull}")
+                observablePlaylistContent(optionalID)
+            }.let {
+                // Forget about the old playlist when a new one gets opened.
+                Observable.switchOnNext(it)
+            }.subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.computation())
+            .map<SongsCollectionState> { songs ->
                 val songsList = SongsList.from(songs) { song ->
                     stubMan.stubFrom(song)
                 }
@@ -80,8 +94,10 @@ class SongsCollectionRepository @Inject constructor(
             }.mergeWith( Observable.create { emitter ->
                 // This way, a new subscriber doesn't have to wait
                 // for all the above operations to finish.
-                cachedPreparedState?.also { emitter.onNext(it) }
-            })
+                cachedPreparedState?.also {
+                    emitter.onNext(it)
+                } ?: emitter.onNext(SongsCollectionState.Preparing)
+            }).also { rxPreparedState = it }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +109,7 @@ class SongsCollectionRepository @Inject constructor(
         subjectDecodeArt.onNext(song)
     }
 
-    private fun buildArtDecodedState(): Observable<SongsCollectionState>
+    private fun observableArtDecodedState(): Observable<SongsCollectionState>
         = subjectDecodeArt.observeOn(Schedulers.io())
             .concatMap { song ->
                 sourcesMan.metaFor(song.sourceClass)
@@ -102,20 +118,18 @@ class SongsCollectionRepository @Inject constructor(
                     ?.let {
                         SongsCollectionState.ArtDecoded(song.ID, it) as SongsCollectionState
                     }?.let { Observable.just(it) }
-                    ?: Observable.empty()
+                    ?: Observable.empty<SongsCollectionState>()
             }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // API:
 
-    private var stateRx: Observable<SongsCollectionState>? = null
 
     fun observableState(): Observable<SongsCollectionState>
-        = stateRx ?: buildCollectionPreparedState()
-            .mergeWith(buildArtDecodedState())
+        = observableCollectionPreparedState()
+            .mergeWith(observableArtDecodedState())
             .observeOn(AndroidSchedulers.mainThread())
-        .also { stateRx = it }
 
 
     fun observableSyncState()
@@ -128,6 +142,9 @@ class SongsCollectionRepository @Inject constructor(
 
     fun notifySyncPermissionsGranted()
         = syncMan.notifyPermissionsGranted()
+
+    fun openPlaylist(playlistID: OptionalID)
+        = subjectPlaylistId.onNext(playlistID)
 
     val previousSong: SongWithSettings?
         get() = collectMan.previous

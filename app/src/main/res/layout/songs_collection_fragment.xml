@@ -26,7 +26,7 @@
         android:tooltipText="@string/navigate_current_song" />
 
     <ProgressBar
-        android:id="@+id/prbSync"
+        android:id="@+id/prBar"
         android:layout_width="@dimen/progress_bar_size"
         android:layout_height="@dimen/progress_bar_size"
         android:layout_gravity="center"

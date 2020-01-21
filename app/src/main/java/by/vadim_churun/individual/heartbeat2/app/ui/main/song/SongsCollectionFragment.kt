@@ -73,7 +73,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
         val lastPosition = layoutMan.findLastVisibleItemPosition()
         val middlePosition = (firstPosition+lastPosition)/2
         if(songPosition < middlePosition) {
-            // Scroll up. Song by default will appear at the top. Move it down.
+            // Need to scroll up. The song by default will appear at the top. Move it down.
             val delta = middlePosition - firstPosition
             recvSongs.smoothScrollToPosition(songPosition - delta)
         } else {
@@ -150,15 +150,26 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI RENDER:
-
     private val syncPermsRequester by lazy {
         SyncPermissionsRequester(this)
     }
+    private var isPreparingCollection = false
+    private var isSyncing = false
+
+    private fun updatePrBarVisibility() {
+        prBar.isVisible = isPreparingCollection || isSyncing
+    }
+
 
     override fun render(state: SongsCollectionState) {
         when(state) {
+            is SongsCollectionState.Preparing -> {
+                isPreparingCollection = true; updatePrBarVisibility()
+            }
+
             is SongsCollectionState.CollectionPrepared -> {
                 displaySongs(state.songs)
+                isPreparingCollection = false; updatePrBarVisibility()
             }
 
             is SongsCollectionState.ArtDecoded -> {
@@ -167,7 +178,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
             }
 
             is SongsCollectionState.ArtDecodeFailed -> {
-                Log.w("HbArts", "Failed to decode art for song ID ${state.songID}")
+                Log.w("HbSong", "Failed to decode art for song ${state.songID}")
             }
         }
     }
@@ -176,11 +187,14 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
         when(state) {
             is SyncState.Active -> {
                 val adapter = recvSongs?.adapter as SongsCollectionAdapter?
-                prbSync.isVisible = (adapter == null || adapter.itemCount == 0)
+
+                             // Otherwise, we just don't need to show the sync process.
+                isSyncing = (adapter == null || adapter.itemCount == 0)
+                updatePrBarVisibility()
             }
 
             is SyncState.NotSyncing -> {
-                prbSync.isVisible = false
+                isSyncing = false; updatePrBarVisibility()
             }
 
             is SyncState.Error -> {

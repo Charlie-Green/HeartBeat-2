@@ -7,6 +7,7 @@ import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.app.HeartBeatApplication
 import by.vadim_churun.individual.heartbeat2.app.model.logic.*
 import by.vadim_churun.individual.heartbeat2.app.model.logic.PlaylistsCollectionRepository
+import by.vadim_churun.individual.heartbeat2.app.model.obj.OptionalID
 import by.vadim_churun.individual.heartbeat2.app.model.obj.PlaylistHeader
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.disposables.CompositeDisposable
@@ -92,6 +93,10 @@ class HeartBeatMediaService: Service() {
 
     fun notifySyncPermissionsGranted() {
         songsRepo.notifySyncPermissionsGranted()
+    }
+
+    fun openPlaylist(playlistID: OptionalID) {
+        songsRepo.openPlaylist(playlistID)
     }
 
 

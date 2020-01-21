@@ -8,6 +8,12 @@ import io.reactivex.disposables.CompositeDisposable
 class PlaylistsCollectionPresenter {
     private val disposable = CompositeDisposable()
 
+    private fun subscribeOpenPlaylist(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
+        = ui.openPlaylistIntent()
+            .doOnNext { action ->
+                service.openPlaylist(action.plistID)
+            }.subscribe()
+
     private fun subscribeDecodeArt(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
         = ui.decodeArtIntent()
             .doOnNext { action ->
@@ -28,6 +34,7 @@ class PlaylistsCollectionPresenter {
         bound = true
 
         disposable.addAll(
+            subscribeOpenPlaylist(service, ui),
             subscribeDecodeArt(service, ui),
             subscribeState(service, ui)
         )
