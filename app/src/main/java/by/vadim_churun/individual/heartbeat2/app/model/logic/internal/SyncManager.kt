@@ -22,15 +22,24 @@ class SyncManager @Inject constructor(
     /////////////////////////////////////////////////////////////////////////////////////////
     // SOURCE WRAPPER:
 
+    /** Container for a [SongsSource] instance with related metadata. **/
     private inner class SongsSourceWrapper(
-        val sourceMeta: SongsSourcesManager.SongsSourceMeta
+        val sourceCode: Byte
     ) {
+        val source
+            = sourcesMan.sourceByCode(sourceCode)
+        val syncPeriodMillis
+            = 1000L*this.source.recommendedSyncPeriod
+
         var nextSyncTime = 0L
         var lastErrorTime = 0L
         var waitPermissions = false
+        var permissionsRerequestFlag = true
 
+        /** The actual work of syncing with this source,
+          * without threading. nor exceptions handling. **/
         fun sync() {
-            val old = dbMan.rawSongs(); val new = sourceMeta.source.fetch()
+            val old = dbMan.rawSongs(); val new = this.source.fetch()
             val added = HashMap<Int, Song>()       // Songs added after this sync.
             val removedIds = mutableListOf<Int>()  // Songs removed from this source.
 
@@ -53,12 +62,13 @@ class SyncManager @Inject constructor(
         }
     }
 
-    private val sourceWrappers: List<SongsSourceWrapper> by lazy {
-        mutableListOf<SongsSourceWrapper>().apply {
-            sourcesMan.forEachSource { sourceMeta ->
-                this.add( SongsSourceWrapper(sourceMeta) )
+    private var sourceWrappers: List<SongsSourceWrapper>? = null
+
+    private fun createSourceWrappers(): List<SongsSourceWrapper>
+        = mutableListOf<SongsSourceWrapper>().apply {
+            sourcesMan.forEachSource { source ->
+                this.add( SongsSourceWrapper(source.ID) )
             }
-        }
     }
 
 
@@ -83,21 +93,27 @@ class SyncManager @Inject constructor(
     fun syncIfTime() {
         var activeStateEmitted = false
 
-        for(index in sourceWrappers.indices) {
-            val swrap = sourceWrappers[index]
+        val wrappers = sourceWrappers ?: createSourceWrappers().also { sourceWrappers = it }
+        for(index in wrappers.indices) {
+            val swrap = wrappers[index]
             if(System.currentTimeMillis() < swrap.nextSyncTime /* Not time yet */ ||
-                swrap.waitPermissions /* Sync impossible: missing permissions */ )
+                swrap.waitPermissions /* Missing permissions */ )
                 continue
 
-            val allPermissions = swrap.sourceMeta.source.permissions
+            val allPermissions = swrap.source.permissions
             val missingPermissions = allPermissions.filter { perm ->
                 val permStatus = ContextCompat.checkSelfPermission(appContext, perm)
                 permStatus != PackageManager.PERMISSION_GRANTED
             }
             if(missingPermissions.isNotEmpty()) {
-                swrap.waitPermissions = true
-                stateSubject.onNext(
-                    SyncState.MissingPermissions(swrap.sourceMeta.name, missingPermissions) )
+                synchronized(swrap) {
+                    swrap.waitPermissions = true
+                }
+                SyncState.MissingPermissions(
+                    swrap.sourceCode,
+                    swrap.source.name,
+                    missingPermissions
+                ).also { stateSubject.onNext(it) }
                 return
             }
 
@@ -112,7 +128,7 @@ class SyncManager @Inject constructor(
                 val now = System.currentTimeMillis()
                 SyncState.Error(
                     now - swrap.lastErrorTime >= ERROR_DISTURB_INTERVAL,
-                    swrap.sourceMeta.name,
+                    swrap.source.name,
                     thr
                 ).also {
                     stateSubject.onNext(it)
@@ -121,17 +137,32 @@ class SyncManager @Inject constructor(
                 }
             }
 
-            val syncPeriod = 1000L * swrap.sourceMeta.source.recommendedSyncPeriod
-            swrap.nextSyncTime = System.currentTimeMillis() + syncPeriod
+            swrap.nextSyncTime = System.currentTimeMillis() + swrap.syncPeriodMillis
         }
 
         if(activeStateEmitted)
             stateSubject.onNext(SyncState.NotSyncing())
     }
 
-    fun notifyPermissionsGranted() {
-        for(swrap in sourceWrappers) {
-            swrap.waitPermissions = false
+    fun submitPermissionsResult(sourceCode: Byte, granted: Boolean) {
+        val swrappers = sourceWrappers ?: throw IllegalStateException(
+            "submitPermissionsResult is called before any sync is performed" )
+        val swrap = swrappers.find {
+            it.sourceCode == sourceCode
+        } ?: return
+
+        synchronized(swrap) {
+            if(granted) {
+                // Let sync work.
+                swrap.permissionsRerequestFlag = true
+                swrap.waitPermissions = false
+            } else if(swrap.permissionsRerequestFlag) {
+                // Re-request the permissions later.
+                swrap.permissionsRerequestFlag = false
+                swrap.nextSyncTime = System.currentTimeMillis() + swrap.syncPeriodMillis
+                swrap.waitPermissions = false
+            }
+            // Otherwise, stop disturbing the user.
         }
     }
 }

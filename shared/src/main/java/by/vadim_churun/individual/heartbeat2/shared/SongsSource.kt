@@ -5,6 +5,13 @@ import android.graphics.Bitmap
 
 /** An interface for any class which can provide a list of songs from some source. **/
 interface SongsSource {
+    /** Integer identifier for this source.
+      * Any number, just needs to be unique among all [SongsSource]s. **/
+    val ID: Byte
+
+    /** User-readable name for this source. **/
+    val name: String
+
     /** How often synchronization with this source should occur, in seconds.
       * The time taken by sync itself should not be encountered. **/
     val recommendedSyncPeriod: Int

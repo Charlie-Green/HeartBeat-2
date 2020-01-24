@@ -14,6 +14,14 @@ android {
         versionCode 2
         versionName "Full Version"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                    "room.incremental":"true"
+                ]
+            }
+        }
     }
 
     buildTypes {

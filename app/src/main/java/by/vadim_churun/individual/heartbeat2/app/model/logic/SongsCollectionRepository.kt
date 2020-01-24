@@ -112,14 +112,17 @@ class SongsCollectionRepository @Inject constructor(
     private fun observableArtDecodedState(): Observable<SongsCollectionState>
         = subjectDecodeArt.observeOn(Schedulers.io())
             .concatMap { song ->
-                sourcesMan.metaFor(song.sourceClass)
-                    .source
-                    .artFor(song)
-                    ?.let {
-                        SongsCollectionState.ArtDecoded(song.ID, it) as SongsCollectionState
+                val source = sourcesMan.sourceByCode(song.sourceCode)
+                try {
+                    val art = source.artFor(song)
+                    art?.let {
+                        SongsCollectionState.ArtDecoded(song.ID, it)
                     }?.let { Observable.just(it) }
                     ?: Observable.empty<SongsCollectionState>()
-            }
+                } catch(thr: Throwable) {
+                    Observable.just(SongsCollectionState.ArtDecodeFailed(song.ID))
+                }
+            }.observeOn(AndroidSchedulers.mainThread())
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -140,8 +143,8 @@ class SongsCollectionRepository @Inject constructor(
         collectMan.order = order
     }
 
-    fun notifySyncPermissionsGranted()
-        = syncMan.notifyPermissionsGranted()
+    fun submitSyncPermissionsResult(sourceCode: Byte, granted: Boolean)
+        = syncMan.submitPermissionsResult(sourceCode, granted)
 
     fun openPlaylist(playlistID: OptionalID)
         = subjectPlaylistId.onNext(playlistID)

@@ -29,10 +29,10 @@ class SongsCollectionPresenter {
                 service.setSongPriority(action.songID, action.newPriority)
             }.subscribe()
 
-    private fun subscribePermsGranted(service: HeartBeatMediaService, ui: SongsCollectionUI)
-        = ui.missingPermissionsGrantedIntent()
-            .doOnNext {
-                service.notifySyncPermissionsGranted()
+    private fun subscribePermissions(service: HeartBeatMediaService, ui: SongsCollectionUI)
+        = ui.submitPermissionsResultIntent()
+            .doOnNext { action ->
+                service.submitSyncPermissionsResult(action.sourceCode, action.granted)
             }.subscribe()
 
     private fun subscribeCollectionState(service: HeartBeatMediaService, ui: SongsCollectionUI)
@@ -67,7 +67,7 @@ class SongsCollectionPresenter {
             subscribePlay(service, ui),
             subscribeDecodeArt(service, ui),
             subscribeSetPriority(service, ui),
-            subscribePermsGranted(service, ui),
+            subscribePermissions(service, ui),
             subscribeCollectionState(service, ui),
             subscribeSyncState(service, ui),
             subscribePlaybackState(service, ui)

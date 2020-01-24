@@ -108,10 +108,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
 
     override fun onRequestPermissionsResult
     (requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        syncPermsRequester.handleResult(requestCode, grantResults) {
-            SongsCollectionSubjects.NOTIFY_PERMISSIONS_GRANTED
-                .onNext(SongsCollectionAction.NotifyPermissionsGranted)
-        }
+        syncPermsRequester.handleResult(requestCode, grantResults)
     }
 
 
@@ -143,9 +140,9 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     override fun setPriorityIntent(): Observable<SongsCollectionAction.SetPriority>
         = SongsCollectionSubjects.SET_PRIORITY
 
-    override fun missingPermissionsGrantedIntent():
-        Observable<SongsCollectionAction.NotifyPermissionsGranted>
-        = SongsCollectionSubjects.NOTIFY_PERMISSIONS_GRANTED
+    override fun submitPermissionsResultIntent():
+    Observable<SongsCollectionAction.SubmitPermissionsResult>
+        = SongsCollectionSubjects.SUBMIT_PERMISSION_RESULT
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -176,10 +173,6 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
                 val adapter = recvSongs.adapter as SongsCollectionAdapter?
                 adapter?.applySongArt(state.songID, state.art)
             }
-
-            is SongsCollectionState.ArtDecodeFailed -> {
-                Log.w("HbSong", "Failed to decode art for song ${state.songID}")
-            }
         }
     }
 
@@ -187,7 +180,6 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
         when(state) {
             is SyncState.Active -> {
                 val adapter = recvSongs?.adapter as SongsCollectionAdapter?
-
                              // Otherwise, we just don't need to show the sync process.
                 isSyncing = (adapter == null || adapter.itemCount == 0)
                 updatePrBarVisibility()
@@ -198,6 +190,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
             }
 
             is SyncState.Error -> {
+                if(state.consumed) return
                 state.consumed = true
 
                 val srcName = state.sourceName
@@ -209,7 +202,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
             }
 
             is SyncState.MissingPermissions -> {
-                syncPermsRequester.request(state.permissions, state.sourceName)
+                syncPermsRequester.request(state)
             }
         }
     }

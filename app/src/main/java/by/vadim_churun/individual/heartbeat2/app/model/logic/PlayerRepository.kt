@@ -16,7 +16,8 @@ import javax.inject.Inject
 class PlayerRepository @Inject constructor(
     private val player: HeartBeatPlayer,
     private val collectMan: SongsCollectionManager,
-    private val stubMan: SongStubsManager
+    private val stubMan: SongStubsManager,
+    private val mapper: Mapper
 ) {
     ///////////////////////////////////////////////////////////////////////////////////////////
     // PLAYBACK MANAGEMENT:
@@ -72,21 +73,10 @@ class PlayerRepository @Inject constructor(
     private var lastSong: SongWithSettings? = null
     private var lastStub: SongStub? = null
 
-    /** Updates [lastSong] to contain the latest SongSettings. **/
+    /** Updates [lastSong] to contain the latest settings. **/
     private fun onSongSettingsChanged(newPriority: Byte = lastSong?.priority ?: 0) {
         lastSong = lastSong?.let {
-            SongWithSettings(
-                it.ID,
-                it.title,
-                it.artist,
-                it.duration,
-                it.filename,
-                it.contentUri,
-                it.sourceClass,
-                player.rate,
-                player.volume,
-                newPriority
-            )
+            mapper.withNewSettings(it, player.rate, player.volume, newPriority)
         }
     }
 

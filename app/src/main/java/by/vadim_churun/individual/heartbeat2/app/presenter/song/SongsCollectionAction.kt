@@ -9,5 +9,7 @@ sealed class SongsCollectionAction {
     class DecodeArt(val song: Song): SongsCollectionAction()
     class Play(val song: SongWithSettings): SongsCollectionAction()
     class SetPriority(val songID: Int, val newPriority: Byte): SongsCollectionAction()
-    object NotifyPermissionsGranted: SongsCollectionAction()
+    class SubmitPermissionsResult(
+        val sourceCode: Byte, val granted: Boolean
+    ): SongsCollectionAction()
 }

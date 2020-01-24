@@ -21,7 +21,7 @@ class SongEntity(
     @ColumnInfo(name="contentUri") val contentUri: String,
 
     /** Knowing what source a song came from is needed to request its art. **/
-    @ColumnInfo(name="source")     val sourceClass: Class<out SongsSource>
+    @ColumnInfo(name="source")     val sourceCode: Byte
 ) {
     companion object {
         fun fromSong(song: Song)
@@ -32,7 +32,7 @@ class SongEntity(
                 song.duration,
                 song.filename,
                 song.contentUri,
-                song.sourceClass
+                song.sourceCode
             )
     }
 }

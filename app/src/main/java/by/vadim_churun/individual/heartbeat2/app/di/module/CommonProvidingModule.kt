@@ -16,10 +16,8 @@ class CommonProvidingModule(private val appContext: Context) {
         = appContext
 
     @Provides
-    fun provideSongsSources(): List<@JvmSuppressWildcards SongsSource> {
-        val sources = mutableListOf<SongsSource>() //mutableListOf<SongsSource>()
-        sources.add( ExternalStorageSongsSource(appContext.contentResolver) )
-        // TODO: Add other sources if there are such.
-        return sources
-    }
+    fun provideSongsSources(): List<@JvmSuppressWildcards SongsSource>
+        = listOf(
+            ExternalStorageSongsSource(appContext)
+        )
 }

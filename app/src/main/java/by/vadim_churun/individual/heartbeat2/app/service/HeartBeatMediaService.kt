@@ -6,9 +6,7 @@ import android.os.Binder
 import android.os.IBinder
 import by.vadim_churun.individual.heartbeat2.app.HeartBeatApplication
 import by.vadim_churun.individual.heartbeat2.app.model.logic.*
-import by.vadim_churun.individual.heartbeat2.app.model.logic.PlaylistsCollectionRepository
-import by.vadim_churun.individual.heartbeat2.app.model.obj.OptionalID
-import by.vadim_churun.individual.heartbeat2.app.model.obj.PlaylistHeader
+import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -91,8 +89,8 @@ class HeartBeatMediaService: Service() {
         // TODO
     }
 
-    fun notifySyncPermissionsGranted() {
-        songsRepo.notifySyncPermissionsGranted()
+    fun submitSyncPermissionsResult(sourceCode: Byte, granted: Boolean) {
+        songsRepo.submitSyncPermissionsResult(sourceCode, granted)
     }
 
     fun openPlaylist(playlistID: OptionalID) {
@@ -134,7 +132,6 @@ class HeartBeatMediaService: Service() {
     private fun subscribeSongComplete()
         = playerRepo.observableSongComplete
             .doOnNext {
-                android.util.Log.v("HbDebug", "Song complete")
                 songsRepo.nextSong?.also { playerRepo.play(it) }
             }.subscribe()
 

@@ -9,5 +9,7 @@ sealed class SongsCollectionState {
     object Preparing: SongsCollectionState()
     class CollectionPrepared(val songs: SongsList): SongsCollectionState()
     class ArtDecoded(val songID: Int, val art: Bitmap): SongsCollectionState()
-    class ArtDecodeFailed(val songID: Int): SongsCollectionState()
+    class ArtDecodeFailed(
+        val songID: Int
+    ): SongsCollectionState() { var consumed = false }
 }

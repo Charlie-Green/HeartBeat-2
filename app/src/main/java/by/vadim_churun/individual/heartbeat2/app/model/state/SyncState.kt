@@ -11,7 +11,8 @@ sealed class SyncState {
         val cause: Throwable
     ): SyncState() { var consumed = false }
     class MissingPermissions(
+        val sourceCode: Byte,
         val sourceName: String,
         val permissions: List<String>
-    ): SyncState()
+    ): SyncState() { var consumed = false }
 }

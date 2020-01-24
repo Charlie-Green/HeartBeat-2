@@ -2,8 +2,8 @@ package by.vadim_churun.individual.heartbeat2.storage
 
 import by.vadim_churun.individual.heartbeat2.shared.*
 import android.Manifest
-import android.content.ContentResolver
-import android.content.ContentUris
+import android.content.*
+import android.content.res.Resources
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,7 +12,13 @@ import android.net.Uri
 import android.provider.MediaStore
 
 
-class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
+class ExternalStorageSongsSource(
+    val resources: Resources,
+    val resolver: ContentResolver
+): SongsSource {
+    constructor(appContext: Context):
+        this(appContext.resources, appContext.contentResolver)
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // HELP:
 
@@ -25,13 +31,17 @@ class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
         return mmr
     }
 
+
     private val COLUMN_NAME_ID     = MediaStore.Audio.Media._ID
     private val COLUMN_NAME_TITLE = MediaStore.Audio.Media.TITLE
     private val COLUMN_NAME_ARTIST = MediaStore.Audio.Media.ARTIST
-    private val COLUMN_NAME_FILENAME = MediaStore.Audio.Media.DATA          // (1)
     private val COLUMN_NAME_IS_SONG = MediaStore.Audio.Media.IS_MUSIC
-    // (1) Use of the deprecated field is needed so that filename can be displayed to the user.
-    //     It's not going to be used for playback.
+
+    // Use of the deprecated field is needed so that filename can be displayed to the user.
+    // It's not going to be used for playback.
+    @Suppress("DEPRECATION")
+    private val COLUMN_NAME_FILENAME = MediaStore.Audio.Media.DATA
+
 
     private val Cursor.ID
         get() = getInt( getColumnIndex(COLUMN_NAME_ID) )
@@ -55,6 +65,12 @@ class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // IMPLEMENTATION:
+
+    override val ID: Byte
+        get() = 0
+
+    override val name: String
+        get() = resources.getString(R.string.source_name)
 
     override val recommendedSyncPeriod: Int
         get() = 9    // Synchronize each 9 seconds.
@@ -94,7 +110,7 @@ class ExternalStorageSongsSource(val resolver: ContentResolver): SongsSource {
                     durationFor(contentUri),
                     curs.filename,
                     contentUri.toString(),
-                    this.javaClass
+                    this.ID
                 )
                 songs.add(song)
             }

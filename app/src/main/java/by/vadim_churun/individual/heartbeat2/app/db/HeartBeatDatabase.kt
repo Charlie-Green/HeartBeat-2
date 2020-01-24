@@ -16,7 +16,6 @@ import by.vadim_churun.individual.heartbeat2.app.db.entity.*
     version = 2,
     exportSchema = false
 )
-@TypeConverters(DatabaseConverters::class)
 abstract class HeartBeatDatabase: RoomDatabase() {
     abstract val songsDao: SongsDao
     abstract val playlistsDao: PlaylistsDao

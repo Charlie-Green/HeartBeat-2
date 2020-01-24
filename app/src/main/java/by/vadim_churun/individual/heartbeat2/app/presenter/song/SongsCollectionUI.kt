@@ -8,8 +8,8 @@ interface SongsCollectionUI {
     fun playIntent(): Observable<SongsCollectionAction.Play>
     fun decodeArtIntent(): Observable<SongsCollectionAction.DecodeArt>
     fun setPriorityIntent(): Observable<SongsCollectionAction.SetPriority>
-    fun missingPermissionsGrantedIntent():
-        Observable<SongsCollectionAction.NotifyPermissionsGranted>
+    fun submitPermissionsResultIntent():
+        Observable<SongsCollectionAction.SubmitPermissionsResult>
     fun render(state: SongsCollectionState)
     fun render(state: SyncState)
     fun render(state: PlaybackState)

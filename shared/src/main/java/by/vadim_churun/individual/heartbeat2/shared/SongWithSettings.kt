@@ -10,8 +10,8 @@ open class SongWithSettings(
     duration: Long,
     filename: String?,
     contentUri: String,
-    sourceClass: Class<out SongsSource>,
+    sourceCode: Byte,
     val rate: Float,
     val volume: Float,
     val priority: Byte
-): Song(ID, title, artist, duration, filename, contentUri, sourceClass)
+): Song(ID, title, artist, duration, filename, contentUri, sourceCode)
