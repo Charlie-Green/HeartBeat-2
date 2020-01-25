@@ -10,6 +10,7 @@
     <string name="last_plist_title_f">Current title: %s</string>
     <string name="plist_art_label">Art:</string>
     <string name="plist_title_empty">Please, enter a title.</string>
+    <string name="plist_title_exists">Such playlist already exists.</string>
     <string name="plist_title_hint">What do you call it?</string>
     <string name="plist_title_label">Title:</string>
     <string name="select_another_plist_art">Try another image</string>

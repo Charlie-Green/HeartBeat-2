@@ -1,7 +1,9 @@
 package by.vadim_churun.individual.heartbeat2.app.model.logic.internal
 
+import by.vadim_churun.individual.heartbeat2.app.db.entity.PlaylistEntity
 import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
 import by.vadim_churun.individual.heartbeat2.app.db.view.SongInPlaylistView
+import by.vadim_churun.individual.heartbeat2.app.model.obj.Playlist
 import by.vadim_churun.individual.heartbeat2.shared.Song
 import by.vadim_churun.individual.heartbeat2.shared.SongWithSettings
 import javax.inject.Inject
@@ -55,4 +57,14 @@ class Mapper @Inject constructor() {
             newVolume,
             newPriority
         )
+
+
+    fun playlist(entity: PlaylistEntity)
+        = Playlist(entity.ID, entity.title, entity.artUri)
+
+    fun playlistEntity(title: String)
+        = PlaylistEntity(0, title, null)
+
+    fun playlistEntity(playlist: Playlist)
+        = PlaylistEntity(playlist.ID, playlist.title, playlist.artUri)
 }

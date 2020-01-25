@@ -2,6 +2,7 @@ package by.vadim_churun.individual.heartbeat2.app.model.logic.internal
 
 import android.content.Context
 import by.vadim_churun.individual.heartbeat2.app.db.HeartBeatDatabase
+import by.vadim_churun.individual.heartbeat2.app.db.entity.PlaylistEntity
 import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
 import javax.inject.Inject
 
@@ -45,8 +46,22 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
     ///////////////////////////////////////////////////////////////////////////////////////
     // PLAYLISTS:
 
+    fun observablePlaylist(playlistID: Int)
+        = this.playlistsDAO.getRx(playlistID)
+
     fun observablePlaylistHeaders()
         = this.playlistsDAO.headersRx()
+
+    fun addPlaylistIfNew(playlist: PlaylistEntity): Boolean
+        = HeartBeatDatabase.get(appContext).runInTransaction<Boolean> {
+            if(this.playlistsDAO.countByTitle(playlist.title) > 0)
+                return@runInTransaction false
+            this.playlistsDAO.addOrUpdate(playlist)
+            return@runInTransaction true
+        }
+
+    fun addOrUpdatePlaylist(playlist: PlaylistEntity)
+        = this.playlistsDAO.addOrUpdate(playlist)
 
 
     ///////////////////////////////////////////////////////////////////////////////////////

@@ -14,13 +14,19 @@ class PlaylistEditPresenter {
     private fun subscribeAdd(service: HeartBeatMediaService, ui: PlaylistEditUI)
         = ui.intentAdd()
             .doOnNext { action ->
-                android.util.Log.v("HbPlist", "Adding playlist ${action.title}")
+                service.addPlaylist(action.title)
             }.subscribe()
 
     private fun subscribeUpdate(service: HeartBeatMediaService, ui: PlaylistEditUI)
-            = ui.intentUpdate()
+        = ui.intentUpdate()
             .doOnNext { action ->
-                android.util.Log.v("HbPlist", "Updating playlist: title:=\"${action.title}\"")
+                service.updatePlaylist(action.updatedPlaylist)
+            }.subscribe()
+
+    private fun subscribeState(service: HeartBeatMediaService, ui: PlaylistEditUI)
+        = service.observablePlaylistEditState(ui.playlistID)
+            .doOnNext { state ->
+                ui.render(state)
             }.subscribe()
 
 
@@ -35,7 +41,8 @@ class PlaylistEditPresenter {
 
         disposable.addAll(
             subscribeAdd(service, ui),
-            subscribeUpdate(service, ui)
+            subscribeUpdate(service, ui),
+            subscribeState(service, ui)
         )
     }
 

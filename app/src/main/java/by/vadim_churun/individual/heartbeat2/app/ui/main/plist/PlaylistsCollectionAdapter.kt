@@ -15,8 +15,8 @@ import kotlinx.android.synthetic.main.plist_page.view.*
 
 
 class PlaylistsCollectionAdapter(
-    val playlists: PlaylistsCollection,
-    val decodeArtSubject: Subject<in PlaylistsCollectionAction.DecodeArt>
+    private val playlists: PlaylistsCollection,
+    private val decodeArtSubject: Subject<in PlaylistsCollectionAction.DecodeArt>
 ):
 RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -99,4 +99,12 @@ RecyclerView.Adapter<PlaylistsCollectionAdapter.PlaylistViewHolder>() {
         else
             bindPlaylist(holder, position-1)  // Position J is for the playlist #(J-1), J >= 1.
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // OTHER:
+
+    fun headerAt(adapterPosition: Int)
+        = if(adapterPosition >= 1) playlists[adapterPosition-1]
+            else null
 }

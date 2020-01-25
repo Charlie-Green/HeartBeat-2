@@ -23,7 +23,10 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
     private var plistsTransformerSet = false
 
     private val currentAdapter
-        = pagerPlists?.adapter as PlaylistsCollectionAdapter?
+        get() = pagerPlists.adapter as PlaylistsCollectionAdapter?
+
+    private val currentHeader
+        get() = this.currentAdapter?.headerAt(pagerPlists.currentItem)
 
     private fun displayPlaylists(playlists: PlaylistsCollection) {
         pagerPlists.adapter = PlaylistsCollectionAdapter(playlists, actionSubject)
@@ -41,6 +44,14 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
             }
         }
         dialog.show(super.requireFragmentManager(), null)
+    }
+
+    private fun View.hideIf(condition: Boolean) {
+        isVisible = !condition
+
+        // For some views, this property gets automatically
+        // set to false when the view is hidden.
+        isEnabled = true
     }
 
 
@@ -65,9 +76,10 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
     override fun openPlaylistIntent(): Observable<PlaylistsCollectionAction.OpenPlaylist>
         = pagerPlists.pageSelections()
             .doOnNext { position ->
-                fabDelete.isVisible = (position != 0)
+                fabEdit.hideIf(position == 0)
+                fabDelete.hideIf(position == 0)
             }.map { position ->
-                val plist =  this.currentAdapter?.playlists?.get(position)
+                val plist = this.currentHeader
                 android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
                 PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )
             }
@@ -109,9 +121,15 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
         = inflater.inflate(R.layout.plists_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        fabAdd.setOnClickListener { showEditDialog(0) }
-        fabEdit.setOnClickListener { /* TODO */ }
-        fabDelete.setOnClickListener { /* TODO */ }
+        fabAdd.setOnClickListener {
+            showEditDialog(0)
+        }
+        fabEdit.setOnClickListener {
+            this.currentHeader?.ID?.also { showEditDialog(it) }
+        }
+        fabDelete.setOnClickListener {
+            /* TODO */
+        }
     }
 
     override fun onStart() {

@@ -1,82 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!-- Layout for .ui.main.plist.PlaylistEditDialog -->
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingLeft="@dimen/layout_padding_small"
     android:paddingTop="@dimen/layout_padding_small"
     android:paddingRight="@dimen/layout_padding_small" >
 
-    <!-- Dialog header -->
-    <TextView
-        android:id="@+id/tvHeader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:gravity="center_horizontal"
-        style="@style/Title.OnDefaultBackground"
-        android:text="@string/add_playlist_suggestion" />
-
-
-    <!-- Title -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/LargerLabel.OnDefaultBackground"
-        android:text="@string/plist_title_label" />
-
-    <EditText
-        android:id="@+id/etTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/plist_title_hint" />
-
-    <TextView
-        android:id="@+id/tvLastTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/Label.OnDefaultBackground"
-        android:text="@string/last_plist_title_f" />
-
-
     <LinearLayout
-        android:orientation="horizontal"
+        android:id="@+id/layoutContent"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" >
+        android:layout_height="wrap_content" >
 
-        <!-- Error label -->
+        <!-- Dialog header -->
         <TextView
-            android:id="@+id/tvError"
+            android:id="@+id/tvHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="8dp"
-            style="@style/ErrorLabel" />
+            android:layout_marginBottom="16dp"
+            android:gravity="center_horizontal"
+            style="@style/Title.OnDefaultBackground"
+            android:text="@string/add_playlist_suggestion" />
 
-        <!-- Submit button -->
-        <Button
-            android:id="@+id/buCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginEnd="4dp"
-            android:backgroundTint="?android:colorBackground"
-            android:textColor="?colorPrimary"
-            android:text="@string/cancel" />
 
-        <!-- Submit button -->
-        <Button
-            android:id="@+id/buSubmit"
-            android:layout_width="wrap_content"
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:text="@string/add_playlist_submit" />
+            style="@style/LargerLabel.OnDefaultBackground"
+            android:text="@string/plist_title_label" />
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/plist_title_hint" />
+
+        <TextView
+            android:id="@+id/tvLastTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Label.OnDefaultBackground"
+            android:text="@string/last_plist_title_f" />
+
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" >
+
+            <!-- Error label -->
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                style="@style/ErrorLabel" />
+
+            <!-- Submit button -->
+            <Button
+                android:id="@+id/buCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="?android:colorBackground"
+                android:textColor="?colorPrimary"
+                android:text="@string/cancel" />
+
+            <!-- Submit button -->
+            <Button
+                android:id="@+id/buSubmit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:text="@string/add_playlist_submit" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/prBar"
+        android:layout_width="@dimen/progress_bar_size"
+        android:layout_height="@dimen/progress_bar_size"
+        android:layout_gravity="center"
+        android:theme="@style/ProgressBarPrimaryColorTheme"
+        android:visibility="gone" />
+
+</FrameLayout>

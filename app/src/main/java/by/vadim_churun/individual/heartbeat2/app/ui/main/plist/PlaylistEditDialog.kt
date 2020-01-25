@@ -7,6 +7,8 @@ import android.view.*
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import by.vadim_churun.individual.heartbeat2.app.R
+import by.vadim_churun.individual.heartbeat2.app.model.obj.Playlist
+import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistEditState
 import by.vadim_churun.individual.heartbeat2.app.presenter.plist.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
 import io.reactivex.Observable
@@ -30,15 +32,18 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
     //////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
-    private var playlistID = 0
+    private var idPlaylist = 0
+    private var lastPlaylist: Playlist? = null
 
-    private fun View.giveEnoughWidth() {
+    private fun expandDialogHorizontally() {
         val activity = this@PlaylistEditDialog.requireActivity()
         val display = activity.windowManager.defaultDisplay
         val displayWidth = DisplayMetrics().also {
             display.getMetrics(it)
         }.widthPixels
-        this.minimumWidth = 0.90.times(displayWidth).toInt()
+        val dialogWith = 0.90.times(displayWidth).toInt()
+        super.requireView().minimumWidth = dialogWith
+        layoutContent.minimumWidth = dialogWith
     }
 
     private fun adaptUiByPlaylistExistance() {
@@ -50,18 +55,28 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
         }
     }
 
+    private fun displayLastPlaylist() {
+        tvLastTitle.text = super.getString(
+            R.string.last_plist_title_f, lastPlaylist!!.title )
+    }
+
     private fun handleSubmit()  {
-        val title = etTitle.text.toString()
-        if(title.isEmpty()) {
+        val newTitle = etTitle.text.toString()
+        if(newTitle.isEmpty()) {
             tvError.setText(R.string.plist_title_empty)
             return
         }
 
-        if(playlistID == 0)
-            subjectAdd.onNext( PlaylistEditAction.Add(title) )
-        else
-            subjectUpdate.onNext(
-                PlaylistEditAction.Update(playlistID, title) )
+        if(playlistID == 0) {
+            PlaylistEditAction.Add(newTitle)
+                .also { subjectAdd.onNext(it) }
+        } else {
+            val plist = lastPlaylist ?: return
+            Playlist(idPlaylist, newTitle, plist.artUri)
+                .let { PlaylistEditAction.Update(it) }
+                .also { subjectUpdate.onNext(it) }
+        }
+        buSubmit.isEnabled = false
     }
 
 
@@ -75,11 +90,42 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
         = PublishSubject.create<PlaylistEditAction.Update>()
 
 
+    override val playlistID: Int
+        get() = idPlaylist
+
     override fun intentAdd(): Observable<PlaylistEditAction.Add>
         = subjectAdd
 
     override fun intentUpdate(): Observable<PlaylistEditAction.Update>
         = subjectUpdate
+
+    override fun render(state: PlaylistEditState) {
+        prBar.isVisible = (state is PlaylistEditState.Processing)
+        when(state) {
+            is PlaylistEditState.Added -> {
+                draftsAccessor.persistNew("")  // This draft's been used, so clear it.
+                flagPersistOnDismiss = false
+                super.dismiss()
+            }
+
+            is PlaylistEditState.Updated -> {
+                super.dismiss()
+            }
+
+            is PlaylistEditState.AddRefused -> {
+                when(state.reason) {
+                    PlaylistEditState.AddRefused.Reason.TITLE_EXISTS ->
+                        R.string.plist_title_exists
+                }.also { tvError.setText(it) }
+                buSubmit.isEnabled = true
+            }
+
+            is PlaylistEditState.LastPlaylistAvailable -> {
+                lastPlaylist = state.oldPlaylist
+                displayLastPlaylist()
+            }
+        }
+    }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +136,7 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
 
     private fun subscribeDraft()
         = draftsAccessor.run {
-                if(playlistID == 0) maybeNew() else maybeUpdated(playlistID)
+                if(idPlaylist == 0) maybeNew() else maybeUpdated(playlistID)
             }.doOnSuccess { title ->
                 etTitle.setText(title)
             }.subscribe()
@@ -105,15 +151,17 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
     //////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
+    private var flagPersistOnDismiss = true
+
     override fun onCreateView
     (inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?
         = inflater.inflate(R.layout.playlist_edit_dialog, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.giveEnoughWidth()
+        expandDialogHorizontally()
         draftsAccessor = PlaylistDraftsAccessor(super.requireActivity())
 
-        playlistID = super.getArguments()?.getInt(KEY_PLAYLIST_ID) ?: 0
+        idPlaylist = super.getArguments()?.getInt(KEY_PLAYLIST_ID) ?: 0
         adaptUiByPlaylistExistance()
         disposable.add(subscribeDraft())
         buCancel.setOnClickListener { super.dismiss() }
@@ -126,8 +174,9 @@ internal class PlaylistEditDialog: DialogFragment(), PlaylistEditUI {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
 
+        if(flagPersistOnDismiss != true) return
         val title = etTitle.text.toString()
-        if(playlistID == 0)
+        if(idPlaylist == 0)
             draftsAccessor.persistNew(title)
         else
             draftsAccessor.persistUpdated(playlistID, title)

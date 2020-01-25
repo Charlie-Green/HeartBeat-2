@@ -8,15 +8,18 @@ import io.reactivex.Observable
 
 @Dao
 abstract class PlaylistsDao {
+    @Query("select * from Playlists where id=:playlistID")
+    abstract fun getRx(playlistID: Int): Observable< PlaylistEntity >
+
     @Query("select P.id as p_id, " +
                   "P.title as p_title, " +
                   "P.art as p_art, " +
-                  "count(*) as songs, " +
+                  "count(I.song) as songs, " +
                   "sum(S.dur) as dur " +
            "from Playlists as P " +
-                "inner join PlaylistItems as I on I.playlist=P.id " +
-                "inner join Songs as S on I.song=S.id " +
-           "group by P.id, P.title, P.art" )
+                "left join PlaylistItems as I on I.playlist=P.id " +
+                "left join Songs as S on I.song=S.id " +
+           "group by p_id, p_title, p_art" )
     abstract fun headersRx(): Observable< List<PlaylistHeaderView> >
 
     @Query("select count(*) from Playlists where title=:title")
