@@ -9,6 +9,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistsCollectionState
 import by.vadim_churun.individual.heartbeat2.app.presenter.plist.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
+import by.vadim_churun.individual.heartbeat2.trans.VerticalCubePageTransformer
 import com.jakewharton.rxbinding3.viewpager2.pageSelections
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable

@@ -14,6 +14,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.app.model.state.*
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
+import by.vadim_churun.individual.heartbeat2.trans.FabDrawableAnimator
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*

@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.app.ui.common
+package by.vadim_churun.individual.heartbeat2.trans
 
 import android.view.View
 import androidx.viewpager2.widget.ViewPager2

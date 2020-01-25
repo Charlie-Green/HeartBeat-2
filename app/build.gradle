@@ -76,4 +76,5 @@ dependencies {
 
     implementation project(path: ':shared')
     implementation project(path: ':storage')
+    implementation project(path: ':trans')
 }
