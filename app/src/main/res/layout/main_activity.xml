@@ -33,13 +33,6 @@
 
     </LinearLayout>
 
-    <fragment
-        android:id="@+id/fragmMediaControl"
-        android:name="by.vadim_churun.individual.heartbeat2.app.ui.main.control.MediaControlFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_hideable="false"
-        app:behavior_peekHeight="40dp" />
+    <include layout="@layout/fragm_media_control" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

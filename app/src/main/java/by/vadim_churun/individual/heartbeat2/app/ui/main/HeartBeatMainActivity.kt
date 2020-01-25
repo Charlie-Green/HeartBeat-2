@@ -5,54 +5,38 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.presenter.service.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayoutMediator
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.fragm_media_control.*
 import kotlinx.android.synthetic.main.main_activity.*
 
 
-class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
+class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI, ServiceSource {
     /////////////////////////////////////////////////////////////////////////////////////////
     // MVI:
 
     private val presenter = ServiceBindingPresenter()
-    private var service: HeartBeatMediaService? = null
+    private val subjectService = BehaviorSubject.create<HeartBeatMediaService>()
 
-    private fun letFragmentsUseBoundService() {
-        val serv = service ?: return
-        val fragmMan = super.getSupportFragmentManager()
-        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
-            dependent.useBoundService(serv)
-        }
-    }
+    /* ServiceSource */
+    override fun observableService(): Observable<HeartBeatMediaService>
+        = subjectService
 
 
+    /* ServiceBoundUI */
     override val boundContext: Context
         get() = this
 
     /* ServiceBoundUI */
     override fun onConnected(service: HeartBeatMediaService) {
-        this.service = service
-        letFragmentsUseBoundService()
-    }
-
-
-    private fun bindPresenter() {
-        presenter.bind(this)
-    }
-
-    private fun unbindPresenter() {
-        val fragmMan = super.getSupportFragmentManager()
-        UiUtils.doForServiceDependentFragments(fragmMan) { dependent ->
-            dependent.notifyServiceUnbound()
-        }
-        presenter.unbind(this)
+        // Notify the dependent fragments that a service instance is available.
+        subjectService.onNext(service)
     }
 
 
@@ -60,7 +44,6 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     // UI:
 
     private var preventFragmentsOverlapCalled = false
-    private val disposable = CompositeDisposable()
 
     private fun hideSystemUi() {
         val FLAGS =
@@ -81,38 +64,11 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     private fun preventFragmentsOverlap() {
         if(preventFragmentsOverlapCalled) return
         preventFragmentsOverlapCalled = true
-
-        fun setTabsPartMargin(bottomMargin: Int) {
-            val v = vlltTabsPart
-            val params = v.layoutParams as CoordinatorLayout.LayoutParams?
-                ?: CoordinatorLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            params.bottomMargin = bottomMargin
-            v.layoutParams = params
-        }
-
-        val vMediaControl = fragmMediaControl.requireView()
-        val behav = BottomSheetBehavior.from(vMediaControl)
-        setTabsPartMargin(behav.peekHeight)
-        behav.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                val deltaHeight = slideOffset.times(bottomSheet.height - behav.peekHeight).toInt()
-                setTabsPartMargin(behav.peekHeight + deltaHeight)
-            }
-
-            override fun onStateChanged(bottomSheet: View, newState: Int)
-            {   }
-        })
+        UiUtils.preventBottomSheetOverlap(fragmMediaControl.requireView(), vlltTabsPart)
     }
 
     private fun setupTabs() {
         val tabsAdapter = MainActivityTabsAdapter(this)
-        tabsAdapter.observableFragmentCreated()
-            .doOnNext { fragment ->
-                if(fragment is ServiceDependent)
-                    service?.also { fragment.useBoundService(it) }
-            }.subscribe()
-            .also { disposable.add(it) }
-
         tabPager.adapter = tabsAdapter
         TabLayoutMediator(tabLayout, tabPager) { tab, position ->
             tab.text = tabsAdapter.labelAt(super.getResources(), position)
@@ -131,7 +87,7 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     override fun onStart() {
         super.onStart()
         preventFragmentsOverlap()
-        bindPresenter()
+        presenter.bind(this)
     }
 
     override fun onResume() {
@@ -140,8 +96,7 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI {
     }
 
     override fun onStop() {
-        unbindPresenter()
-        disposable.clear()
+        presenter.unbind(this)
         super.onStop()
     }
 

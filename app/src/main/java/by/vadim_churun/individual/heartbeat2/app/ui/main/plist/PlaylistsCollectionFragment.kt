@@ -2,25 +2,25 @@ package by.vadim_churun.individual.heartbeat2.app.ui.main.plist
 
 import android.os.Bundle
 import android.view.*
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistsCollectionState
 import by.vadim_churun.individual.heartbeat2.app.presenter.plist.*
-import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.jakewharton.rxbinding3.viewpager2.pageSelections
 import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.plists_collection_fragment.*
 
 
-class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDependent {
+class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
     /////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
     private var plistsTransformerSet = false
-
 
     private val currentAdapter
         = pagerPlists?.adapter as PlaylistsCollectionAdapter?
@@ -33,26 +33,28 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
         }
     }
 
+    private fun showEditDialog(playlistID: Int) {
+        val dialog = PlaylistEditDialog()
+        if(playlistID != 0) {
+            dialog.arguments = Bundle().apply {
+                putInt(PlaylistEditDialog.KEY_PLAYLIST_ID, playlistID)
+            }
+        }
+        dialog.show(super.requireFragmentManager(), null)
+    }
 
-    /////////////////////////////////////////////////////////////////////////////////////////
-    // PRESENTER:
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // MVI PRESENTER:
 
     private val presenter = PlaylistsCollectionPresenter()
-    private var isViewCreated = false
-    private var service: HeartBeatMediaService? = null
+    private val disposable = CompositeDisposable()
 
-    /* ServiceDependent */
-    override fun useBoundService(service: HeartBeatMediaService) {
-        if(isViewCreated)
+    private fun subscribeService(source: ServiceSource)
+            = source.observableService()
+        .doOnNext { service ->
             presenter.bind(service, this)
-        else
-            this.service = service
-    }
-
-    /* ServiceDependent */
-    override fun notifyServiceUnbound() {
-        presenter.unbind()
-    }
+        }.subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +64,9 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
 
     override fun openPlaylistIntent(): Observable<PlaylistsCollectionAction.OpenPlaylist>
         = pagerPlists.pageSelections()
-            .map { position ->
+            .doOnNext { position ->
+                fabDelete.isVisible = (position != 0)
+            }.map { position ->
                 val plist =  this.currentAdapter?.playlists?.get(position)
                 android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
                 PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )
@@ -77,7 +81,6 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
     override fun render(state: PlaylistsCollectionState) {
         when(state) {
             PlaylistsCollectionState.Preparing -> {
-                android.util.Log.v("HbPlist", "Preparing")
                 prBar.visibility = View.VISIBLE
                 displayPlaylists( PlaylistsCollection.from(listOf()) )
             }
@@ -106,7 +109,20 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI, ServiceDep
         = inflater.inflate(R.layout.plists_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        isViewCreated = true
-        service?.also { useBoundService(it) }
+        fabAdd.setOnClickListener { showEditDialog(0) }
+        fabEdit.setOnClickListener { /* TODO */ }
+        fabDelete.setOnClickListener { /* TODO */ }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val serviceSource = super.requireActivity() as ServiceSource
+        disposable.add(subscribeService(serviceSource))
+    }
+
+    override fun onStop() {
+        presenter.unbind()
+        disposable.clear()
+        super.onStop()
     }
 }

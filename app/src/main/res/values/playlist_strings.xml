@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="add_playlist">Add a playlist</string>
+    <string name="add_playlist_submit">Create</string>
+    <string name="add_playlist_suggestion">So, new playlist here?</string>
     <string name="all_songs_label">&lt;All Songs&gt;</string>
+    <string name="choose_plist_content">Choose the songs to be in this playlist:</string>
     <string name="delete_playlist">Delete this playlist</string>
     <string name="edit_playlist">Edit this playlist</string>
+    <string name="last_plist_title_f">Current title: %s</string>
+    <string name="plist_art_label">Art:</string>
+    <string name="plist_title_empty">Please, enter a title.</string>
+    <string name="plist_title_hint">What do you call it?</string>
+    <string name="plist_title_label">Title:</string>
+    <string name="select_another_plist_art">Try another image</string>
+    <string name="select_plist_art">Choose your image!</string>
+    <string name="update_playlist">Rename this playlist</string>
+    <string name="update_playlist_submit">Rename</string>
+    <string name="update_playlist_suggestion">Rename this playlist?</string>
 </resources>

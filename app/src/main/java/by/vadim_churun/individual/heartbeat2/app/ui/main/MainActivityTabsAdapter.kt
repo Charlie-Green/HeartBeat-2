@@ -13,11 +13,6 @@ import io.reactivex.Observable
 class MainActivityTabsAdapter(
     mainActivity: FragmentActivity
 ): FragmentStateAdapter(mainActivity) {
-    private val subjectFragmentCreated = PublishSubject.create<Fragment>()
-
-    fun observableFragmentCreated(): Observable<Fragment>
-        = subjectFragmentCreated
-
     /** Returns label for the given tab. **/
     fun labelAt(res: Resources, position: Int)
         = when(position) {
@@ -34,5 +29,5 @@ class MainActivityTabsAdapter(
             0 -> SongsCollectionFragment() as Fragment
             1 -> PlaylistsCollectionFragment() as Fragment
             else -> throw IllegalArgumentException("position = $position")
-        }.also { subjectFragmentCreated.onNext(it) }
+        }
 }

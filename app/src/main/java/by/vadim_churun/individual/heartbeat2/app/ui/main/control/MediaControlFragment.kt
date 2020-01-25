@@ -1,4 +1,4 @@
-package by.vadim_churun.individual.heartbeat2.app.ui.main.control
+package by.vadim_churun.individual.heartbeat2.app.ui.common.control
 
 import android.os.Bundle
 import android.util.TypedValue
@@ -11,20 +11,20 @@ import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.model.obj.SongStub
 import by.vadim_churun.individual.heartbeat2.app.model.state.PlaybackState
 import by.vadim_churun.individual.heartbeat2.app.presenter.control.*
-import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.shared.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.userChanges
 import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.*
 import kotlinx.android.synthetic.main.media_control_fragment.*
 import kotlin.math.roundToInt
 
 
 class MediaControlFragment:
-DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
+DialogFragment(), MediaControlUI, SystemUiOverlapped {
     ////////////////////////////////////////////////////////////////////////////////////////
     // EXTENSION:
 
@@ -159,9 +159,11 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
         setPeekHeight()
     }
 
-    override fun onPause() {
-        super.onPause()
-        preventInitialSeekbarChanges()
+    override fun onStart() {
+        super.onStart()
+
+        val serviceSource = super.requireActivity() as ServiceSource
+        disposable.addAll(subscribeService(serviceSource))
     }
 
     override fun onResume() {
@@ -169,21 +171,29 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped, ServiceDependent {
         letTitleAndArtistMarquee()
     }
 
+    override fun onPause() {
+        super.onPause()
+        preventInitialSeekbarChanges()
+    }
+
+    override fun onStop() {
+        disposable.clear()
+        presenter.unbind()
+        super.onStop()
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI PRESENTER:
 
     private val presenter = MediaControlPresenter()
+    private val disposable = CompositeDisposable()
 
-    /* ServiceDependent */
-    override fun useBoundService(service: HeartBeatMediaService) {
-        presenter.bind(service, this)
-    }
-
-    /* Service Dependent */
-    override fun notifyServiceUnbound() {
-        presenter.unbind()
-    }
+    private fun subscribeService(source: ServiceSource)
+        = source.observableService()
+            .doOnNext { service ->
+                presenter.bind(service, this)
+            }.subscribe()
 
 
     ////////////////////////////////////////////////////////////////////////////////////////

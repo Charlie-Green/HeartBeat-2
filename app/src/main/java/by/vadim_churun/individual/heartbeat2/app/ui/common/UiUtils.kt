@@ -1,8 +1,10 @@
 package by.vadim_churun.individual.heartbeat2.app.ui.common
 import android.content.res.Resources
 import android.util.DisplayMetrics
-import android.view.Display
+import android.view.*
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.FragmentManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 
 object UiUtils {
@@ -27,19 +29,35 @@ object UiUtils {
         return "$hs$ms$ss"
     }
 
-    fun doForServiceDependentFragments
-    (fragmMan: FragmentManager, action: (dependent: ServiceDependent) -> Unit) {
-        for(fragm in fragmMan.fragments) {
-            if(fragm.isAdded && fragm is ServiceDependent)
-                action(fragm)
-        }
-    }
-
     fun reportSystemUiVisibilityToFragments
     (fragmMan: FragmentManager, isSystemUiVisible: Boolean) {
         for(fragm in fragmMan.fragments) {
             if(fragm.isAdded && fragm is SystemUiOverlapped)
                 fragm.onSystemUiVisibilityChanged(isSystemUiVisible)
         }
+    }
+
+    fun preventBottomSheetOverlap(bottomSheet: View, contentView: View) {
+        fun setContentViewMargin(bottomMargin: Int) {
+            val params = contentView.layoutParams as CoordinatorLayout.LayoutParams?
+                ?: CoordinatorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            params.bottomMargin = bottomMargin
+            contentView.layoutParams = params
+        }
+
+        val behav = BottomSheetBehavior.from(bottomSheet)
+        setContentViewMargin(behav.peekHeight)
+        behav.addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                val deltaHeight = slideOffset.times(bottomSheet.height - behav.peekHeight).toInt()
+                setContentViewMargin(behav.peekHeight + deltaHeight)
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int)
+            {   }
+        })
     }
 }

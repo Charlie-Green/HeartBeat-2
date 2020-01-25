@@ -13,13 +13,13 @@ import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.app.model.state.*
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.*
-import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceDependent
+import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
 import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
+class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
@@ -27,7 +27,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     private val KEY_RETAINED_POSITION = "retainPos"
 
     private fun displaySongs(songs: SongsList) {
-        val layoutMan = recvSongs?.layoutManager as LinearLayoutManager?
+        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
         val lastPosition = retainedPosition?.also {
             // This field is used only once.
             retainedPosition = null
@@ -65,7 +65,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     }
 
     private fun navigateCurrentSong() {
-        val adapter = recvSongs?.adapter as SongsCollectionAdapter? ?: return
+        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
         val songPosition = adapter.highlightedPosition ?: return
 
         val layoutMan = recvSongs.layoutManager as LinearLayoutManager
@@ -98,6 +98,18 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
         fabCurrent.setOnClickListener { navigateCurrentSong() }
     }
 
+    override fun onStart() {
+        super.onStart()
+        val serviceSource = super.requireActivity() as ServiceSource
+        disposable.addAll(subscribeService(serviceSource))
+    }
+
+    override fun onStop() {
+        disposable.clear()
+        presenter.unbind()
+        super.onStop()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
@@ -116,16 +128,13 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
     // MVI PRESENTER:
 
     private val presenter = SongsCollectionPresenter()
+    private val disposable = CompositeDisposable()
 
-    /* ServiceDependent */
-    override fun useBoundService(service: HeartBeatMediaService) {
-        presenter.bind(service, this)
-    }
-
-    /* ServiceDependent */
-    override fun notifyServiceUnbound() {
-        presenter.unbind()
-    }
+    private fun subscribeService(source: ServiceSource)
+        = source.observableService()
+            .doOnNext { service ->
+                presenter.bind(service, this)
+            }.subscribe()
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -147,6 +156,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, ServiceDependent {
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI RENDER:
+
     private val syncPermsRequester by lazy {
         SyncPermissionsRequester(this)
     }

@@ -5,31 +5,33 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:name="HeartBeatApplication"
+        android:name=".HeartBeatApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_app"
-        android:roundIcon="@drawable/ic_app"
         android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_app"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".ui.main.HeartBeatMainActivity"
-                  android:launchMode="singleTop" >
+        <activity android:name=".ui.plist.PlaylistEditActivity"></activity>
+        <activity
+            android:name=".ui.main.HeartBeatMainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <service android:name=".service.HeartBeatMediaService"
-                 android:exported="false" >
+        <service
+            android:name=".service.HeartBeatMediaService"
+            android:exported="false">
             <intent-filter>
                 <action android:name="by.vadim_churun.individual.heartbeat2.app.action.PPAUSE" />
                 <action android:name="by.vadim_churun.individual.heartbeat2.app.action.PREV" />
                 <action android:name="by.vadim_churun.individual.heartbeat2.app.action.NEXT" />
             </intent-filter>
         </service>
-
     </application>
 
 </manifest>
