@@ -1,7 +1,10 @@
 package by.vadim_churun.individual.heartbeat2.app.db.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import by.vadim_churun.individual.heartbeat2.app.db.entity.PlaylistItemEntity
 import by.vadim_churun.individual.heartbeat2.app.db.view.SongInPlaylistView
 import io.reactivex.Observable
 
@@ -25,9 +28,12 @@ abstract class PlaylistItemsDao {
            "where I.playlist=:playlistID" )
     abstract fun playlistContentRx(playlistID: Int): Observable< List<SongInPlaylistView> >
 
-    @Query("delete from PlaylistItems where playlist=:playlistID")
-    abstract fun deleteFromPlaylist(playlistID: Int)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract fun add(items: List<PlaylistItemEntity>)
 
+    @Query("delete from PlaylistItems " +
+           "where playlist=:playlistID and song in (:songIds)" )
+    abstract fun deleteFromPlaylist(playlistID: Int, songIds: List<Int>)
 
     @Query("delete from PlaylistItems where song in (:songIds)")
     abstract fun deleteForSongs(songIds: List<Int>)

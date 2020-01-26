@@ -2,12 +2,14 @@ package by.vadim_churun.individual.heartbeat2.app.model.logic
 
 import by.vadim_churun.individual.heartbeat2.app.model.logic.internal.*
 import by.vadim_churun.individual.heartbeat2.app.model.obj.*
+import by.vadim_churun.individual.heartbeat2.app.model.state.PlaylistContentModifState
 import by.vadim_churun.individual.heartbeat2.app.model.state.SongsCollectionState
 import by.vadim_churun.individual.heartbeat2.shared.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -118,6 +120,30 @@ class SongsCollectionRepository @Inject constructor(
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
+    // MODIFYING PLAYLIST CONTENT:
+
+    private class PlaylistContentEditHolder(
+        val playlistID: Int,
+        val removedSongIDs: List<Int>,
+        val addedSongIDs: List<Int>
+    )
+
+    private val subjectEditPlistContent = PublishSubject.create<PlaylistContentEditHolder>()
+    private val subjectPlistContentState = BehaviorSubject.create<PlaylistContentModifState>()
+
+    private fun subscribePlaylistContentEdit()
+        = subjectEditPlistContent
+            .observeOn(Schedulers.io())
+            .doOnNext { holder ->
+                subjectPlistContentState.onNext(PlaylistContentModifState.Processing)
+                dbMan.updatePlaylistContent(
+                    holder.playlistID, holder.removedSongIDs, holder.addedSongIDs )
+                subjectPlistContentState.onNext(PlaylistContentModifState.Updated)
+                subjectPlaylistId.onNext( OptionalID.wrap(holder.playlistID) )
+            }.subscribe()
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////
     // ART DECODE:
 
     private var subjectDecodeArt = PublishSubject.create<Song>()
@@ -151,10 +177,13 @@ class SongsCollectionRepository @Inject constructor(
             .mergeWith(observableArtDecodedState())
             .observeOn(AndroidSchedulers.mainThread())
 
-
     fun observableSyncState()
         = syncMan.observableState()
             .observeOn(AndroidSchedulers.mainThread())
+
+    fun observablePlaylistContentState()
+        = subjectPlistContentState.observeOn(AndroidSchedulers.mainThread())
+
 
     fun setSongsOrder(order: SongsOrder) {
         collectMan.order = order
@@ -165,6 +194,12 @@ class SongsCollectionRepository @Inject constructor(
 
     fun openPlaylist(playlistID: OptionalID)
         = subjectPlaylistId.onNext(playlistID)
+
+    fun updatePlaylistContent
+    (playlistID: Int, removedSongIDs: List<Int>, addedSongIDs: List<Int>) {
+        subjectEditPlistContent.onNext(
+            PlaylistContentEditHolder(playlistID, removedSongIDs, addedSongIDs) )
+    }
 
     val previousSong: SongWithSettings?
         get() = collectMan.previous
@@ -177,8 +212,11 @@ class SongsCollectionRepository @Inject constructor(
     // LIFECYCLE:
 
     init {
-        disposable.add(subscribeSync())
-        disposable.add(subscribeCollectionPrepared())
+        disposable.addAll(
+            subscribeSync(),
+            subscribeCollectionPrepared(),
+            subscribePlaylistContentEdit()
+        )
     }
 
     fun dispose() {

@@ -16,10 +16,11 @@ import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
 import by.vadim_churun.individual.heartbeat2.trans.FabDrawableAnimator
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 
-class SongsCollectionFragment: Fragment(), SongsCollectionUI {
+class SongsCollectionFragment: Fragment(), SongsCollectionUI, PlaylistContentModifUI {
     ////////////////////////////////////////////////////////////////////////////////////////
     // SAVED STATE:
 
@@ -27,6 +28,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     private val KEY_IS_EDITING = "edit"
     private var retainedPosition: Int? = null
     private var isEditing = false
+    private var playlistID = 0
 
     private fun restoreState(savedState: Bundle?) {
         savedState ?: return
@@ -64,7 +66,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         }
     }
 
-    private fun showSyncErrorDialog(sourceName: String, cause: Throwable) {
+    private fun showSyncErrorDialog(sourceName: String) {
         val context = super.requireContext()
         AlertDialog.Builder(context)
             .setTitle(R.string.error)
@@ -118,12 +120,34 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         fabEdit.setImageResource(if(isEditing) R.drawable.ic_apply else R.drawable.ic_edit)
     }
 
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // CONTENT EDITING:
+
+    private lateinit var onDismissedSubscribtion: Disposable
+
     private fun swapEditMode() {
-        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
         isEditing = !isEditing
+        if(isEditing)
+            SongsCollectionEditor.userChecks.clear()
+
         displaySongs()
         FabDrawableAnimator(fabEdit)
             .start(if(isEditing) R.drawable.ic_apply else R.drawable.ic_edit)
+    }
+
+    private fun subscribeOnUpdateDialogDismiss()
+        = UpdatePlistContentDialog
+            .observableDismissed()
+            .doOnNext { dismissReason ->
+                if(dismissReason != UpdatePlistContentDialog.DismissReason.OUTSIDE_TAPPED)
+                    swapEditMode()
+            }.subscribe()
+
+    private fun confirmUpdatePlaylistContent() {
+        val updateInfo = UpdatePlistContentDialog.UpdateInfo(
+            playlistID, "[TODO: FETCH NAME]", SongsCollectionEditor.userChecks )
+        UpdatePlistContentDialog.show(updateInfo)
     }
 
 
@@ -138,19 +162,28 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         restoreState(savedInstanceState)
         locateFabs()
         fabCurrent.setOnClickListener { navigateCurrentSong() }
-        fabEdit.setOnClickListener    { swapEditMode() }
+        fabEdit.setOnClickListener    {
+            if(isEditing)
+                confirmUpdatePlaylistContent()
+            else
+                swapEditMode()
+        }
     }
 
     override fun onStart() {
         super.onStart()
         val serviceSource = super.requireActivity() as ServiceSource
         disposable.addAll(subscribeService(serviceSource))
+        UpdatePlistContentDialog.fragment = this
+        onDismissedSubscribtion = subscribeOnUpdateDialogDismiss()
     }
 
     override fun onStop() {
-        disposable.clear()
-        presenter.unbind()
+        disposable.clear(); onDismissedSubscribtion.dispose()
+        UpdatePlistContentDialog.clear()
+        presenter.unbind(); contentPresenter.unbind()
         super.onStop()
+        UpdatePlistContentDialog.clear()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -168,12 +201,14 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     // MVI PRESENTER:
 
     private val presenter = SongsCollectionPresenter()
+    private val contentPresenter = PlaylistContentModifPresenter()
     private val disposable = CompositeDisposable()
 
     private fun subscribeService(source: ServiceSource)
         = source.observableService()
             .doOnNext { service ->
                 presenter.bind(service, this)
+                contentPresenter.bind(service, this)
             }.subscribe()
 
 
@@ -193,6 +228,9 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     Observable<SongsCollectionAction.SubmitPermissionsResult>
         = SongsCollectionSubjects.SUBMIT_PERMISSION_RESULT
 
+    override fun intentUpdateContent(): Observable<PlaylistContentModifAction.UpdateContent>
+        = SongsCollectionSubjects.UPDATE_PLAYLIST_CONTENT
+
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // MVI RENDER:
@@ -202,9 +240,10 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     }
     private var isPreparingCollection = false
     private var isSyncing = false
+    private var isUpdatingContent = false
 
     private fun updatePrBarVisibility() {
-        prBar.isVisible = isPreparingCollection || isSyncing
+        prBar.isVisible = isPreparingCollection || isSyncing || isUpdatingContent
     }
 
 
@@ -218,6 +257,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
                 // If all songs are being displayed, editing is not allowed.
                 isEditing = isEditing && (state.allSongs != null)
 
+                playlistID = state.playlistID
                 SongsCollectionEditor.playlistSongs = state.songs
                 SongsCollectionEditor.allSongs = state.allSongs ?: state.songs
                 updateFabEdit(); displaySongs()
@@ -253,7 +293,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
                 val thrMessage = state.cause.message
                 Log.w("HbSync", "$thrName from $srcName: $thrMessage")
                 if(state.shouldDisturbUser)
-                    showSyncErrorDialog(state.sourceName, state.cause)
+                    showSyncErrorDialog(state.sourceName)
             }
 
             is SyncState.MissingPermissions -> {
@@ -270,5 +310,20 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
             else -> null
         } ?: return
         adapter.highlightSong(playingSong.ID)
+    }
+
+    override fun render(state: PlaylistContentModifState) {
+        when(state) {
+            is PlaylistContentModifState.Processing -> {
+                isUpdatingContent = true
+            }
+
+            is PlaylistContentModifState.Updated -> {
+                isUpdatingContent = false
+                android.util.Log.v("HbContent", "Updated")
+                // TODO: Show a brief message.
+            }
+        }
+        updatePrBarVisibility()
     }
 }

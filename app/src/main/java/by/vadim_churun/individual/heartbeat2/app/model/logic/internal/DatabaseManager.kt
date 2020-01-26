@@ -2,8 +2,7 @@ package by.vadim_churun.individual.heartbeat2.app.model.logic.internal
 
 import android.content.Context
 import by.vadim_churun.individual.heartbeat2.app.db.HeartBeatDatabase
-import by.vadim_churun.individual.heartbeat2.app.db.entity.PlaylistEntity
-import by.vadim_churun.individual.heartbeat2.app.db.entity.SongEntity
+import by.vadim_churun.individual.heartbeat2.app.db.entity.*
 import javax.inject.Inject
 
 
@@ -21,6 +20,9 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
     private val playlistItemsDAO
         get() = HeartBeatDatabase.get(appContext).playlistItemsDao
 
+    private fun transaction(body: () -> Unit)
+        = HeartBeatDatabase.get(appContext).runInTransaction(body)
+
 
     ///////////////////////////////////////////////////////////////////////////////////////
     // SONGS:
@@ -33,7 +35,7 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
 
     fun updateSongs(removedIds: List<Int>, added: List<SongEntity>) {
         if(removedIds.isEmpty() && added.isEmpty()) return
-        HeartBeatDatabase.get(appContext).runInTransaction {
+        transaction {
             if(removedIds.isNotEmpty()) {
                 this.playlistItemsDAO.deleteForSongs(removedIds)
                 this.songsDAO.delete(removedIds)
@@ -69,4 +71,18 @@ class DatabaseManager @Inject constructor(val appContext: Context) {
 
     fun observablePlaylistContent(playlistID: Int)
         = this.playlistItemsDAO.playlistContentRx(playlistID)
+
+    fun updatePlaylistContent
+    (playlistID: Int, removedSongIDs: List<Int>, addedSongIDs: List<Int>) {
+        val addedSongs = this.songsDAO.get(addedSongIDs)
+        val addedItems = addedSongs.map { song ->
+            // Initially, songs are added with default settings.
+            // The settings can be modified later.
+            PlaylistItemEntity(song.ID, playlistID, 1f, 1f, 3)
+        }
+        transaction {
+            this.playlistItemsDAO.deleteFromPlaylist(playlistID, removedSongIDs)
+            this.playlistItemsDAO.add(addedItems)
+        }
+    }
 }

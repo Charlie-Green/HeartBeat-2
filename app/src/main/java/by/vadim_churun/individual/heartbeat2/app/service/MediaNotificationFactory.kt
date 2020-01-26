@@ -139,12 +139,6 @@ class MediaNotificationFactory @Inject constructor(
                 val msgPlayFailed = appContext.getString(R.string.play_failed)
                 NotifStateHolder(msgPlayFailed, "", false)
             }
-
-            else -> {
-                val commonClass = PlaybackState::class.java.simpleName
-                val exactClass = state.javaClass.simpleName
-                throw IllegalArgumentException("Unknown $commonClass: $exactClass" )
-            }
         }
 
         if(newStateHolder == lastStateHolder) return

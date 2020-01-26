@@ -3,6 +3,7 @@
     <string name="cancel">Cancel</string>
     <string name="error">Error</string>
     <string name="navigate_current_song">Navigate to Current</string>
+    <string name="no">No</string>
     <string name="not_request_permissions">No, thanks</string>
     <string name="ok">OK</string>
     <string name="one_more_step">One more step</string>
@@ -18,4 +19,5 @@
     <string name="songs_tab">Songs</string>
     <string name="step_f">Step %d out of %d</string>
     <string name="sync_error_f">HeartBeat 2 failed to fetch songs from %s.</string>
+    <string name="yes">Yes</string>
 </resources>

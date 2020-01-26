@@ -26,8 +26,8 @@ class MainActivityTabsAdapter(
 
     override fun createFragment(position: Int)
         = when(position) {
-            0 -> SongsCollectionFragment() as Fragment
-            1 -> PlaylistsCollectionFragment() as Fragment
+            0 -> SongsCollectionFragment()
+            1 -> PlaylistsCollectionFragment()
             else -> throw IllegalArgumentException("position = $position")
         }
 }

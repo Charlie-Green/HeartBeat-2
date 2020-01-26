@@ -10,6 +10,9 @@ abstract class SongsDao {
     @Query("select * from Songs")
     abstract fun get(): List<SongEntity>
 
+    @Query("select * from Songs where id in (:ids)")
+    abstract fun get(ids: List<Int>): List<SongEntity>
+
     @Query("select * from Songs")
     abstract fun getRx(): Observable< List<SongEntity> >
 

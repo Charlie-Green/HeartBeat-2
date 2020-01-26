@@ -224,7 +224,7 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped {
         = sbPosition.userChanges()
             .filter {
                 wasInitialSeek.also { wasInitialSeek = true }
-            }.map { event ->
+            }.map { _ ->
                 val position = sbPosition.progressToMediaPosition()
                 MediaControlAction.Seek(position)
             }
@@ -233,7 +233,7 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped {
         = sbRate.userChanges()
             .filter {
                 wasInitialRateSet.also { wasInitialRateSet = true }
-            }.map { event ->
+            }.map { _ ->
                 val rate = sbRate.progressToPlaybackRate()
                 MediaControlAction.SetRate(rate)
             }.mergeWith( normalizeRateSubject
@@ -244,7 +244,7 @@ DialogFragment(), MediaControlUI, SystemUiOverlapped {
         = sbVolume.userChanges()
             .filter {
                 wasInitialVolumeSet.also { wasInitialVolumeSet = true }
-            }.map { event ->
+            }.map { _ ->
                 val volume = sbVolume.progressToVolume()
                 MediaControlAction.SetVolume(volume)
             }

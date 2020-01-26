@@ -6,7 +6,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
 internal object SongsCollectionEditor {
     private var mAllSongs: SongsList? = null
     private var mPlaylistSongs: SongsList? = null
-    private val userChecks = HashMap<Int, Boolean>()
+    val userChecks = HashMap<Int, Boolean>()
 
     var playlistSongs: SongsList
         get() = mPlaylistSongs
@@ -26,6 +26,11 @@ internal object SongsCollectionEditor {
         = userChecks[songID] ?: (this.playlistSongs.indexOf(songID) != null)
 
     fun applyUserCheck(songID: Int, isChecked: Boolean) {
-        userChecks[songID] = isChecked
+        val isInPlaylist = (playlistSongs.indexOf(songID) != null)
+        if(isInPlaylist != isChecked)
+            userChecks[songID] = isChecked  // User sets a change.
+        else
+            userChecks.remove(songID)       // User cancels their change.
+
     }
 }

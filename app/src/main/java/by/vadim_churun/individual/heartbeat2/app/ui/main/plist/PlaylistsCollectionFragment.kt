@@ -55,6 +55,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
 
         pagerPlists.post {
             retainedPosition = null
+            android.util.Log.v("HbPlist", "Setting position: $position")
             pagerPlists.currentItem = position
         }
     }
@@ -97,7 +98,7 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
                 fabEdit.isVisible = (position != 0)
                 fabDelete.isVisible = (position != 0)
             }.debounce(700L, TimeUnit.MILLISECONDS)  // The user may be just scrolling fast,
-            .map { position ->                       // so omit redundant open requests.
+            .map {                                   // so omit redundant open requests.
                 val plist = this.currentHeader
                 android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
                 PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )

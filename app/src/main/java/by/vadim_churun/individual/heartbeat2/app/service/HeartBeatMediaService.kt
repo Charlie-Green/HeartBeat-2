@@ -105,6 +105,11 @@ class HeartBeatMediaService: Service() {
         plistsRepo.update(updatedPlaylist)
     }
 
+    fun updatePlaylistContent
+    (playlistID: Int, removedSongIds: List<Int>, addedSongIds: List<Int>) {
+        songsRepo.updatePlaylistContent(playlistID, removedSongIds, addedSongIds)
+    }
+
 
     fun observableSongsCollectionState()
         = songsRepo.observableState()
@@ -120,6 +125,9 @@ class HeartBeatMediaService: Service() {
 
     fun observablePlaylistEditState(playlistID: Int)
         = plistsRepo.observableEditState(playlistID)
+
+    fun observablePlaylistContentModifState()
+        = songsRepo.observablePlaylistContentState()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
