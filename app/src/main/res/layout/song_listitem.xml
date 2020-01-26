@@ -47,7 +47,7 @@
     <RatingBar
         android:id="@+id/priorityIndicator"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
@@ -62,8 +62,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginEnd="4dp"
+        android:layout_marginEnd="8dp"
         style="@style/LargerLabel.OnDefaultBackground"
         android:text="00:00" />
+
+    <CheckBox
+        android:id="@+id/chbIsInPlaylist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:buttonTint="?colorPrimary" />
 
 </LinearLayout>

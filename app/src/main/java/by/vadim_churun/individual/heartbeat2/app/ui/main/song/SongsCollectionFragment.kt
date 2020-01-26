@@ -10,7 +10,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.vadim_churun.individual.heartbeat2.app.R
-import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.app.model.state.*
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
@@ -22,24 +21,47 @@ import kotlinx.android.synthetic.main.songs_collection_fragment.*
 
 class SongsCollectionFragment: Fragment(), SongsCollectionUI {
     ////////////////////////////////////////////////////////////////////////////////////////
+    // SAVED STATE:
+
+    private val KEY_RETAINED_POSITION = "retainPos"
+    private val KEY_IS_EDITING = "edit"
+    private var retainedPosition: Int? = null
+    private var isEditing = false
+
+    private fun restoreState(savedState: Bundle?) {
+        savedState ?: return
+        retainedPosition = savedState.getInt(KEY_RETAINED_POSITION)
+        isEditing = savedState.getBoolean(KEY_IS_EDITING)
+    }
+
+    private fun saveState(outState: Bundle) {
+        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
+        layoutMan?.findLastVisibleItemPosition()?.also {
+            outState.putInt(KEY_RETAINED_POSITION, it)
+        }
+        outState.putBoolean(KEY_IS_EDITING, isEditing)
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
-    private var retainedPosition: Int? = null
-    private val KEY_RETAINED_POSITION = "retainPos"
-
-    private fun displaySongs(songs: SongsList) {
+    private fun displaySongs() {
         val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
-        val lastPosition = retainedPosition?.also {
-            // This field is used only once.
-            retainedPosition = null
-        } ?:layoutMan?.findFirstVisibleItemPosition()
+        val lastPosition = retainedPosition
+            ?: layoutMan?.findFirstVisibleItemPosition()
+            ?: 0
+
         recvSongs.layoutManager = layoutMan
             ?: LinearLayoutManager(super.requireContext())
-        val newAdapter = SongsCollectionAdapter(super.requireContext(), songs)
+        val newAdapter = SongsCollectionAdapter(super.requireContext(), isEditing)
         recvSongs.swapAdapter(newAdapter, true)
 
         // Preserve the previously scrolled position:
-        lastPosition?.also { recvSongs.scrollToPosition(it) }
+        recvSongs.post {
+            retainedPosition = null
+            recvSongs.scrollToPosition(lastPosition)
+        }
     }
 
     private fun showSyncErrorDialog(sourceName: String, cause: Throwable) {
@@ -51,7 +73,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
             .show()
     }
 
-    private fun locateFindCurrentFab() {
+    private fun locateFabs() {
         val small = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_small)
         val medium = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_medium)
         val big = super.getResources().getDimensionPixelSize(R.dimen.fab_margin_big)
@@ -63,6 +85,12 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         params.bottomMargin = if(isPortrait) medium else small
         params.marginEnd    = if(isPortrait) small else big
         fabCurrent.layoutParams = params
+
+        val paramsEdit = fabEdit.layoutParams as CoordinatorLayout.LayoutParams
+        paramsEdit.marginEnd = params.marginEnd
+        fabCurrent.measure(0, 0)
+        paramsEdit.bottomMargin = params.bottomMargin + small + fabCurrent.measuredHeight
+        fabEdit.layoutParams = paramsEdit
     }
 
     private fun navigateCurrentSong() {
@@ -84,6 +112,21 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         }
     }
 
+    private fun updateFabEdit() {
+        fabEdit.isVisible =
+            (SongsCollectionEditor.playlistSongs != SongsCollectionEditor.allSongs)
+        fabEdit.setImageResource(if(isEditing) R.drawable.ic_apply else R.drawable.ic_edit)
+    }
+
+    private fun swapEditMode() {
+        val adapter = recvSongs.adapter as SongsCollectionAdapter? ?: return
+        isEditing = !isEditing
+        displaySongs()
+        FabDrawableAnimator(fabEdit)
+            .start(if(isEditing) R.drawable.ic_apply else R.drawable.ic_edit)
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
@@ -92,11 +135,10 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
         = inflater.inflate(R.layout.songs_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        savedInstanceState?.getInt(KEY_RETAINED_POSITION)?.also {
-            retainedPosition = it
-        }
-        locateFindCurrentFab()
+        restoreState(savedInstanceState)
+        locateFabs()
         fabCurrent.setOnClickListener { navigateCurrentSong() }
+        fabEdit.setOnClickListener    { swapEditMode() }
     }
 
     override fun onStart() {
@@ -113,10 +155,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        val layoutMan = recvSongs.layoutManager as LinearLayoutManager?
-        layoutMan?.findFirstVisibleItemPosition()?.also {
-            outState.putInt(KEY_RETAINED_POSITION, it)
-        }
+        saveState(outState)
     }
 
     override fun onRequestPermissionsResult
@@ -176,7 +215,12 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI {
             }
 
             is SongsCollectionState.CollectionPrepared -> {
-                displaySongs(state.songs)
+                // If all songs are being displayed, editing is not allowed.
+                isEditing = isEditing && (state.allSongs != null)
+
+                SongsCollectionEditor.playlistSongs = state.songs
+                SongsCollectionEditor.allSongs = state.allSongs ?: state.songs
+                updateFabEdit(); displaySongs()
                 isPreparingCollection = false; updatePrBarVisibility()
             }
 

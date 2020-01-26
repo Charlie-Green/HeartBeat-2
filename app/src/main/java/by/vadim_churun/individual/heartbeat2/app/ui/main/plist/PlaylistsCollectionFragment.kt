@@ -15,9 +15,25 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.plists_collection_fragment.*
+import java.util.concurrent.TimeUnit
 
 
 class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // SAVED STATE:
+
+    private val KEY_RETAINED_POSITION = "retainPos"
+    private var retainedPosition: Int? = null
+
+    private fun restoreState(savedState: Bundle?) {
+        retainedPosition = savedState?.getInt(KEY_RETAINED_POSITION)
+    }
+
+    private fun saveState(outState: Bundle) {
+        outState.putInt(KEY_RETAINED_POSITION, pagerPlists.currentItem)
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // UI:
 
@@ -30,10 +46,16 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
         get() = this.currentAdapter?.headerAt(pagerPlists.currentItem)
 
     private fun displayPlaylists(playlists: PlaylistsCollection) {
+        val position = retainedPosition ?: pagerPlists.currentItem
         pagerPlists.adapter = PlaylistsCollectionAdapter(playlists, actionSubject)
         if(!plistsTransformerSet) {
             plistsTransformerSet = true
             pagerPlists.setPageTransformer(VerticalCubePageTransformer())
+        }
+
+        pagerPlists.post {
+            retainedPosition = null
+            pagerPlists.currentItem = position
         }
     }
 
@@ -45,14 +67,6 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
             }
         }
         dialog.show(super.requireFragmentManager(), null)
-    }
-
-    private fun View.hideIf(condition: Boolean) {
-        isVisible = !condition
-
-        // For some views, this property gets automatically
-        // set to false when the view is hidden.
-        isEnabled = true
     }
 
 
@@ -73,13 +87,17 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
     // MVI:
 
     private val actionSubject = PublishSubject.create<PlaylistsCollectionAction>()
+    private var wasInitialPageSelection = false
 
     override fun openPlaylistIntent(): Observable<PlaylistsCollectionAction.OpenPlaylist>
         = pagerPlists.pageSelections()
-            .doOnNext { position ->
-                fabEdit.hideIf(position == 0)
-                fabDelete.hideIf(position == 0)
-            }.map { position ->
+            .filter {
+                wasInitialPageSelection.also { wasInitialPageSelection = true }
+            }.doOnNext { position ->
+                fabEdit.isVisible = (position != 0)
+                fabDelete.isVisible = (position != 0)
+            }.debounce(700L, TimeUnit.MILLISECONDS)  // The user may be just scrolling fast,
+            .map { position ->                       // so omit redundant open requests.
                 val plist = this.currentHeader
                 android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
                 PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )
@@ -122,6 +140,8 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
         = inflater.inflate(R.layout.plists_collection_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        restoreState(savedInstanceState)
+
         fabAdd.setOnClickListener {
             showEditDialog(0)
         }
@@ -143,5 +163,11 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
         presenter.unbind()
         disposable.clear()
         super.onStop()
+        wasInitialPageSelection = false
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        saveState(outState)
     }
 }

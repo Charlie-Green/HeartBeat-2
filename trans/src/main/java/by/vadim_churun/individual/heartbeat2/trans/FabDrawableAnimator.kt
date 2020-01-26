@@ -14,7 +14,7 @@ class FabDrawableAnimator(
             addUpdateListener { animator ->
                 target.drawable.alpha = animator.animatedValue as Int
             }
-            duration = 600L
+            duration = 500L
         }
 
     fun start(nextDrawableID: Int) {

@@ -4,18 +4,26 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.TypedValue
 import android.view.*
+import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
 import by.vadim_churun.individual.heartbeat2.app.R
-import by.vadim_churun.individual.heartbeat2.app.model.obj.SongsList
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.SongsCollectionAction
 import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
 import kotlinx.android.synthetic.main.song_listitem.view.*
 
 
-class SongsCollectionAdapter(
+internal class SongsCollectionAdapter(
     val context: Context,
-    val songs: SongsList
+    val modeEdit: Boolean
 ): RecyclerView.Adapter<SongsCollectionAdapter.SongViewHolder>() {
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // HELP:
+
+    val displayedSongs
+        get() = if(modeEdit) SongsCollectionEditor.allSongs
+            else SongsCollectionEditor.playlistSongs
+
+
     ////////////////////////////////////////////////////////////////////////////////////////
     // ARTS
 
@@ -24,10 +32,10 @@ class SongsCollectionAdapter(
             context.theme.resolveAttribute(android.R.attr.colorPrimary, it, true)
         }.data
     }
-    private val arts = MutableList<Bitmap?>(songs.size) { null }
+    private val arts = MutableList<Bitmap?>(this.displayedSongs.size) { null }
 
     fun applySongArt(songID: Int, art: Bitmap) {
-        val position = songs.indexOf(songID) ?: return
+        val position = this.displayedSongs.indexOf(songID) ?: return
         arts[position] = art
         super.notifyItemChanged(position)
     }
@@ -42,7 +50,7 @@ class SongsCollectionAdapter(
         get() = if(indexHighlight >= 0) indexHighlight else null
 
     fun highlightSong(songID: Int) {
-        val newIndex = songs.indexOf(songID)
+        val newIndex = this.displayedSongs.indexOf(songID)
         when(newIndex) {
             indexHighlight -> { /* Do nothing. */ }
 
@@ -74,11 +82,12 @@ class SongsCollectionAdapter(
         val tvArtist          = itemView.tvArtist
         val priorityIndicator = itemView.priorityIndicator
         val tvDuration        = itemView.tvDuration
+        val chbIsInPlaylist   = itemView.chbIsInPlaylist
     }
 
 
     override fun getItemCount(): Int
-        = songs.size
+        = this.displayedSongs.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
         = LayoutInflater.from(context)
@@ -89,11 +98,26 @@ class SongsCollectionAdapter(
         // Potentially highlights this item:
         holder.itemView.isSelected = (position == indexHighlight)
 
-        val entry = songs[position]
+        val entry = this.displayedSongs[position]
+        if(modeEdit) {
+            holder.priorityIndicator.visibility = View.GONE
+            holder.chbIsInPlaylist.visibility = View.VISIBLE
+
+            holder.chbIsInPlaylist.isChecked =
+                SongsCollectionEditor.mustCheckSong(entry.song.ID)
+            holder.chbIsInPlaylist.setOnClickListener { v ->
+                val isChecked = (v as CheckBox).isChecked
+                SongsCollectionEditor.applyUserCheck(entry.song.ID, isChecked)
+            }
+        } else {
+            holder.chbIsInPlaylist.visibility = View.GONE
+            holder.priorityIndicator.visibility = View.VISIBLE
+            holder.priorityIndicator.alpha = 0.2f*entry.song.priority
+        }
+
         holder.tvTitle.text = entry.stub.displayTitle
         holder.tvArtist.text = entry.stub.displayArtist
         holder.tvDuration.text = UiUtils.timeString(entry.song.duration)
-        holder.priorityIndicator.alpha = 0.2f*entry.song.priority
 
         arts[position]?.also {
             holder.imgvArt.setImageBitmap(it)

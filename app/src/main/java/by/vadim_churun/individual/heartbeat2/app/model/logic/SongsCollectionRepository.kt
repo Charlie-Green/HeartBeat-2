@@ -1,6 +1,5 @@
 package by.vadim_churun.individual.heartbeat2.app.model.logic
 
-import android.util.Log
 import by.vadim_churun.individual.heartbeat2.app.model.logic.internal.*
 import by.vadim_churun.individual.heartbeat2.app.model.obj.*
 import by.vadim_churun.individual.heartbeat2.app.model.state.SongsCollectionState
@@ -9,7 +8,6 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -29,6 +27,7 @@ class SongsCollectionRepository @Inject constructor(
     // INTERNAL:
 
     private val disposable = CompositeDisposable()
+    private val subjectCollectionInternal = PublishSubject.create<SongsList>()
 
     private fun subscribeSync()
         = Observable.interval(1L, TimeUnit.SECONDS)
@@ -39,65 +38,83 @@ class SongsCollectionRepository @Inject constructor(
             }.subscribe()
 
     private fun subscribeCollectionPrepared()
-        = observableCollectionPreparedState()
-            .doOnNext { state ->
-                if(state is SongsCollectionState.CollectionPrepared)
-                    collectMan.collection = state.songs
+        = subjectCollectionInternal
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext { songs ->
+                collectMan.collection = songs
             }.subscribe()
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // PREPARING COLLECTION:
 
+    /** A help class to construct [SongsCollectionState.CollectionPrepared] **/
+    private class PreparedHolder(
+        var playlistID: Int?,
+        var allSongs: SongsList?,
+        var playlistSongs: SongsList?,
+        var searchQuery: String
+    )
+
     private var cachedPreparedState: SongsCollectionState.CollectionPrepared? = null
-    private val subjectPlaylistId = BehaviorSubject.create<OptionalID>()
+    private val subjectPlaylistId = PublishSubject.create<OptionalID>()
+    private val subjectSearchQuery = PublishSubject.create<String>()
+    private var lastHolder = PreparedHolder(null, null, null, "")
     private var rxPreparedState: Observable<SongsCollectionState>? = null
 
-    private fun observablePlaylistContent(
-        playlistID: OptionalID
-    ): Observable< List<SongWithSettings> >
-        = playlistID.idOrNull?.let {
-            dbMan.observablePlaylistContent(it)  // Songs from a specific playlist
-                .map { songsInPlaylist ->
-                    // List<SongInPlaylistView> -> List<SongWithSettings>
-                    songsInPlaylist.map { songInPlaylist ->
-                        mapper.songWithSettings(songInPlaylist)
-                    }
-                }.subscribeOn(Schedulers.io())
-        } ?: dbMan.observableSongs()            // All songs.
-            .map { songEntities ->
-                // List<SongEntity> -> List<SongWithSettings>
-                songEntities.map { songEntity ->
-                    mapper.songWithSettings(songEntity)
-                }
-            }.subscribeOn(Schedulers.io())
-
     private fun observableCollectionPreparedState(): Observable<SongsCollectionState>
-        = rxPreparedState ?: subjectPlaylistId
-            .startWith( OptionalID.wrap(null) )
-            .distinctUntilChanged { oid1, oid2 ->
-                oid1.idOrNull == oid2.idOrNull
-            }.map { optionalID ->
-                Log.v("HbPlist", "Opening playlist ${optionalID.idOrNull}")
-                observablePlaylistContent(optionalID)
-            }.let {
-                // Forget about the old playlist when a new one gets opened.
-                Observable.switchOnNext(it)
-            }.subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.computation())
-            .map<SongsCollectionState> { songs ->
-                val songsList = SongsList.from(songs) { song ->
-                    stubMan.stubFrom(song)
+        = rxPreparedState ?: dbMan
+            .observableSongs()
+            .subscribeOn(Schedulers.io())
+            .map { songs ->
+                val songsList = mapper.songsListFromEntities(songs)
+                lastHolder.apply { allSongs = songsList }
+            }.mergeWith(
+                subjectPlaylistId.doOnNext { optionalID ->
+                    lastHolder.playlistID = optionalID.idOrNull
+                }.switchMap { optionalID ->
+                    optionalID.idOrNull?.let {
+                        dbMan.observablePlaylistContent(it)
+                            .subscribeOn(Schedulers.io())
+                            .map { playlistContent ->
+                                val songs = mapper.songsListFromViews(playlistContent)
+                                lastHolder.apply { playlistSongs = songs }
+                            }
+                    } ?: Observable.just(lastHolder)
+                }.subscribeOn(Schedulers.computation())
+            ).mergeWith(
+                subjectSearchQuery.map { query ->
+                    lastHolder.apply { searchQuery = query }
                 }
-                SongsCollectionState.CollectionPrepared(songsList)
-                    .also { cachedPreparedState = it }
-            }.mergeWith( Observable.create { emitter ->
-                // This way, a new subscriber doesn't have to wait
-                // for all the above operations to finish.
-                cachedPreparedState?.also {
-                    emitter.onNext(it)
-                } ?: emitter.onNext(SongsCollectionState.Preparing)
-            }).also { rxPreparedState = it }
+            ).observeOn(Schedulers.computation())
+            .map<SongsCollectionState> { holder ->
+                android.util.Log.v(
+                    "HbSongs", "Preparing collection for playlist ${holder.playlistID}" )
+
+                val actualSongs =
+                    if(holder.playlistID == null) holder.allSongs!!
+                    else holder.playlistSongs!!
+
+                // Signal the full (with no search applied) collection to underlying engines:
+                subjectCollectionInternal.onNext(actualSongs)
+
+                // TODO: Filter the songs according to the current search query.
+                val filteredSongs = actualSongs
+
+                SongsCollectionState.CollectionPrepared(
+                    filteredSongs,
+                    if(holder.playlistID == null) null
+                        else holder.allSongs!!,
+                    holder.playlistID ?: 0
+                ).also { cachedPreparedState = it }
+            }.mergeWith(
+                Observable.create { emitter ->
+                    // This way, a new subscriber doesn't have to wait
+                    // for all the above operations to finish.
+                    cachedPreparedState?.also { emitter.onNext(it) }
+                    emitter.onComplete()
+                }
+            ).also { rxPreparedState = it }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////

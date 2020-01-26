@@ -25,6 +25,18 @@
         app:tint="?android:colorBackground"
         android:tooltipText="@string/navigate_current_song" />
 
+    <!-- Located programmatically. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        app:fabCustomSize="@dimen/fab_size_default"
+        app:backgroundTint="?colorPrimary"
+        android:src="@drawable/ic_edit"
+        app:tint="?android:colorBackground"
+        android:tooltipText="@string/navigate_current_song" />
+
     <ProgressBar
         android:id="@+id/prBar"
         android:layout_width="@dimen/progress_bar_size"
