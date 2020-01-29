@@ -16,6 +16,7 @@
     </string>
     <string name="play_failed">Failed to play a song</string>
     <string name="plists_tab">Playlists</string>
+    <string name="search_songs_hint">Song, artist, or filename</string>
     <string name="songs_tab">Songs</string>
     <string name="step_f">Step %d out of %d</string>
     <string name="sync_error_f">HeartBeat 2 failed to fetch songs from %s.</string>

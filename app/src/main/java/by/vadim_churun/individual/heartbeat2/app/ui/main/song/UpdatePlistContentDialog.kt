@@ -1,11 +1,9 @@
 package by.vadim_churun.individual.heartbeat2.app.ui.main.song
 
-import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.PlaylistContentModifAction
-import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -120,7 +118,7 @@ internal object UpdatePlistContentDialog {
             }.setNegativeButton(R.string.no) { dialog, _ ->
                 dismissReason = DismissReason.DENIED
                 dialog.dismiss()
-            }.setOnDismissListener { dialog ->
+            }.setOnDismissListener { _ ->
                 statistics.dialogDismissed = true
                 subjectDismissed.onNext(dismissReason)
             }.show()

@@ -20,6 +20,12 @@ class PlaylistsCollectionPresenter {
                 service.requestArtDecode(action.plistHeader)
             }.subscribe()
 
+    private fun subscribeSearch(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
+        = ui.searchIntent()
+            .doOnNext {
+                // TODO
+            }.subscribe()
+
     private fun subscribeState(service: HeartBeatMediaService, ui: PlaylistsCollectionUI)
         = service.observablePlaylistsCollectionState()
             .doOnNext { state ->
@@ -36,6 +42,7 @@ class PlaylistsCollectionPresenter {
         disposable.addAll(
             subscribeOpenPlaylist(service, ui),
             subscribeDecodeArt(service, ui),
+            subscribeSearch(service, ui),
             subscribeState(service, ui)
         )
     }

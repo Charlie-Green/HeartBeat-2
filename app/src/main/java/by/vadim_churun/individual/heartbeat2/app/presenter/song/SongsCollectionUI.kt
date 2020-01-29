@@ -10,6 +10,7 @@ interface SongsCollectionUI {
     fun setPriorityIntent(): Observable<SongsCollectionAction.SetPriority>
     fun submitPermissionsResultIntent():
         Observable<SongsCollectionAction.SubmitPermissionsResult>
+    fun searchIntent(): Observable<CharSequence>
     fun render(state: SongsCollectionState)
     fun render(state: SyncState)
     fun render(state: PlaybackState)

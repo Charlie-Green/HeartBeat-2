@@ -9,29 +9,74 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.HeartBeatMainActivity" >
 
-    <LinearLayout
+    <GridLayout
         android:id="@+id/vlltTabsPart"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:columnCount="2" >
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabMaxWidth="0dp"
-            app:tabGravity="fill"
-            app:tabMode="fixed"
-            app:tabBackground="?colorPrimaryDark"
-            app:tabTextColor="?android:colorBackground"
-            app:tabIndicatorColor="?colorAccent" />
+        <ImageView
+            android:id="@+id/imgvSearch"
+            android:layout_gravity="fill_vertical"
+            android:paddingTop="8dp"
+            android:src="@drawable/ic_search"
+            android:tint="?android:colorBackground"
+            android:background="?colorPrimaryDark" />
+
+        <FrameLayout
+            android:layout_gravity="fill_horizontal"
+            android:paddingTop="8dp"
+            android:background="?colorPrimaryDark" >
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabMaxWidth="0dp"
+                app:tabGravity="fill"
+                app:tabMode="fixed"
+                app:tabBackground="?colorPrimaryDark"
+                app:tabTextColor="?android:colorBackground"
+                app:tabIndicatorColor="?colorAccent" />
+
+            <!-- The reason for not using SearchView is to provide custom animations
+                 for expand and close. -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingBottom="3dp"
+                android:background="?colorPrimaryDark" >
+
+                <EditText
+                    android:id="@+id/etSearchQuery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:scrollHorizontally="true"
+                    android:hint="@string/search_songs_hint"
+                    android:textColor="?android:colorBackground"
+                    android:backgroundTint="?android:colorBackground" />
+
+                <ImageView
+                    android:id="@+id/imgvSearchClose"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_close"
+                    android:tint="?android:colorBackground" />
+
+            </LinearLayout>
+
+        </FrameLayout>
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/tabPager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_columnSpan="2"
+            android:layout_gravity="fill" />
 
-    </LinearLayout>
+    </GridLayout>
 
     <include layout="@layout/fragm_media_control" />
 

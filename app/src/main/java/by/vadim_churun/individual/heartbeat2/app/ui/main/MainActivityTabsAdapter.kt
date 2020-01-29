@@ -6,11 +6,9 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.ui.main.plist.PlaylistsCollectionFragment
 import by.vadim_churun.individual.heartbeat2.app.ui.main.song.SongsCollectionFragment
-import io.reactivex.subjects.PublishSubject
-import io.reactivex.Observable
 
 
-class MainActivityTabsAdapter(
+internal class MainActivityTabsAdapter(
     mainActivity: FragmentActivity
 ): FragmentStateAdapter(mainActivity) {
     /** Returns label for the given tab. **/

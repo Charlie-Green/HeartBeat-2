@@ -15,7 +15,7 @@ class SongsList private constructor(
 
     companion object {
         fun from
-        (songs: List<SongWithSettings>, stubFor: (song: SongWithSettings) -> SongStub): SongsList {
+                    (songs: List<SongWithSettings>, stubFor: (song: SongWithSettings) -> SongStub): SongsList {
             val entries = songs.map { song ->
                 Entry(
                     song,
@@ -39,7 +39,7 @@ class SongsList private constructor(
     val size: Int
         get() = entries.size
     operator fun get(position: Int): Entry
-        = entries[position]
+            = entries[position]
     fun indexOf(songID: Int): Int?
-        = idToPositionMap[songID]
+            = idToPositionMap[songID]
 }

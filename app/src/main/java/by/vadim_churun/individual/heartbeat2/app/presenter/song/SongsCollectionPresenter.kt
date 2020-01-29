@@ -35,6 +35,12 @@ class SongsCollectionPresenter {
                 service.submitSyncPermissionsResult(action.sourceCode, action.granted)
             }.subscribe()
 
+    private fun subscribeSearch(service: HeartBeatMediaService, ui: SongsCollectionUI)
+        = ui.searchIntent()
+            .doOnNext {
+                // TODO
+            }.subscribe()
+
     private fun subscribeCollectionState(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = service.observableSongsCollectionState()
             .doOnNext { state ->
@@ -68,6 +74,7 @@ class SongsCollectionPresenter {
             subscribeDecodeArt(service, ui),
             subscribeSetPriority(service, ui),
             subscribePermissions(service, ui),
+            subscribeSearch(service, ui),
             subscribeCollectionState(service, ui),
             subscribeSyncState(service, ui),
             subscribePlaybackState(service, ui)

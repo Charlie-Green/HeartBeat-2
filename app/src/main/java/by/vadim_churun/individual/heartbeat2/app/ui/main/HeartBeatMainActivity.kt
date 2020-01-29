@@ -8,16 +8,17 @@ import android.view.View
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.presenter.service.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
+import by.vadim_churun.individual.heartbeat2.app.ui.MainActivitySearchHelper
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.google.android.material.tabs.TabLayoutMediator
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragm_media_control.*
 import kotlinx.android.synthetic.main.main_activity.*
 
 
-class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI, ServiceSource {
+class HeartBeatMainActivity:
+    AppCompatActivity(), ServiceBoundUI, ServiceSource, SearchViewOwner {
     /////////////////////////////////////////////////////////////////////////////////////////
     // MVI:
 
@@ -75,6 +76,15 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI, ServiceSource 
         }.attach()
     }
 
+
+    /* SearchViewOwner */
+    override fun observableSearchQuery(): Observable<CharSequence> {
+        MainActivitySearchHelper.bind(
+            imgvSearch, etSearchQuery, imgvSearchClose, tabLayout )
+        return MainActivitySearchHelper.observableSearchQuery()
+    }
+
+
     /////////////////////////////////////////////////////////////////////////////////////////
     // LIFECYCLE:
 
@@ -103,5 +113,10 @@ class HeartBeatMainActivity: AppCompatActivity(), ServiceBoundUI, ServiceSource 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         tabPager.requestDisallowInterceptTouchEvent(true)
         return true
+    }
+
+    override fun onDestroy() {
+        MainActivitySearchHelper.unbind()
+        super.onDestroy()
     }
 }

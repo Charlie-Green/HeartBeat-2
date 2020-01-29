@@ -109,6 +109,13 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
             .filter { it is PlaylistsCollectionAction.DecodeArt }
             .map    { it as PlaylistsCollectionAction.DecodeArt }
 
+    override fun searchIntent(): Observable<CharSequence>
+        = (super.requireActivity() as SearchViewOwner)
+            .observableSearchQuery()
+            .doOnNext { query ->
+                android.util.Log.v("HbSearch", "Searching for playlist: $query")
+            }
+
 
     override fun render(state: PlaylistsCollectionState) {
         when(state) {

@@ -2,7 +2,7 @@ package by.vadim_churun.individual.heartbeat2.shared
 
 
 /** Represents a song for which settings are applicable.
- * These may be settings in a playlist or the default settings. **/
+  * These may be settings in a playlist or the default settings. **/
 open class SongWithSettings(
     ID: Int,
     title: String,
