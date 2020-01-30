@@ -11,7 +11,9 @@ import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
 import by.vadim_churun.individual.heartbeat2.app.ui.MainActivitySearchHelper
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.google.android.material.tabs.TabLayoutMediator
+import com.jakewharton.rxbinding3.viewpager2.pageSelections
 import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragm_media_control.*
 import kotlinx.android.synthetic.main.main_activity.*
@@ -77,12 +79,33 @@ class HeartBeatMainActivity:
     }
 
 
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // RX:
+
+    private val disposable = CompositeDisposable()
+
     /* SearchViewOwner */
-    override fun observableSearchQuery(): Observable<CharSequence> {
+    override fun observableSearchQuery(componentID: Int): Observable<CharSequence> {
         MainActivitySearchHelper.bind(
             imgvSearch, etSearchQuery, imgvSearchClose, tabLayout )
-        return MainActivitySearchHelper.observableSearchQuery()
+        return MainActivitySearchHelper
+            .observableSearchQuery()
+            .filter { query ->
+                val adapter = tabPager.adapter as MainActivityTabsAdapter?
+                adapter ?: return@filter false
+                (adapter.searchViewOwnerIdAt(tabPager.currentItem) == componentID).also {
+                    if(it == true)
+                        adapter.saveSearchAt(tabPager.currentItem, query)
+                }
+            }.distinctUntilChanged()
     }
+
+    private fun subscribeTabSelected()
+        = tabPager.pageSelections()
+            .doOnNext { position ->
+                val adapter = tabPager.adapter as MainActivityTabsAdapter ?: return@doOnNext
+                etSearchQuery.setText(adapter.lastSearchAt(position))
+            }.subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +121,7 @@ class HeartBeatMainActivity:
         super.onStart()
         preventFragmentsOverlap()
         presenter.bind(this)
+        disposable.add(subscribeTabSelected())
     }
 
     override fun onResume() {
@@ -106,6 +130,7 @@ class HeartBeatMainActivity:
     }
 
     override fun onStop() {
+        disposable.clear()
         presenter.unbind(this)
         super.onStop()
     }

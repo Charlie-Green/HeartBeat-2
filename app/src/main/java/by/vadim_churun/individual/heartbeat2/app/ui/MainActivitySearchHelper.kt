@@ -9,19 +9,23 @@ import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
 import com.jakewharton.rxbinding3.widget.textChanges
 import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
 
 
 internal object MainActivitySearchHelper {
     //////////////////////////////////////////////////////////////////////////////////////////
-    // FIELDS:
+    // FIELDS AND PROPERTIES:
 
     private lateinit var iconView: ImageView
     private lateinit var queryView: EditText
     private lateinit var crossView: ImageView
     private lateinit var tabs: TabLayout
+    private val subjectExpanded = BehaviorSubject.create<Boolean>()
     private var bound = false
-    private var expanded = false
+
+    val isViewExpanded
+        get() = subjectExpanded.value ?: false
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -33,6 +37,16 @@ internal object MainActivitySearchHelper {
         return queryView
             .textChanges()  // Omit redundant search requests when the user is typing.
             .debounce(200L, TimeUnit.MILLISECONDS)
+            .map { query ->
+                if(this.isViewExpanded) query else ""
+            }.mergeWith(
+                subjectExpanded.flatMap { expanded ->
+                    if(expanded)
+                        Observable.just(queryView.text)
+                    else
+                        Observable.empty()
+                }
+            )
     }
 
 
@@ -40,7 +54,7 @@ internal object MainActivitySearchHelper {
     // ANIMATIONS:
 
     private fun ViewPropertyAnimator.configAndStart(onEnd: () -> Unit) {
-        duration = 2000L
+        duration = 400L
         setListener( object: Animator.AnimatorListener {
             override fun onAnimationStart(anim: Animator)  {   }
             override fun onAnimationRepeat(anim: Animator) {   }
@@ -53,12 +67,11 @@ internal object MainActivitySearchHelper {
     }
 
     private fun animateExpand() {
-        expanded = true
+        subjectExpanded.onNext(true)
         iconView.isEnabled = false
 
         tabs.pivotY = 0f                                     // Collapse to top
         tabs.animate().scaleY(0f).configAndStart {
-            android.util.Log.v("HbSearch", "tabs.animate.scaleY(0f) ended")
             tabs.visibility = View.GONE
             crossView.visibility = View.INVISIBLE
 
@@ -72,7 +85,7 @@ internal object MainActivitySearchHelper {
     }
 
     private fun animateIconify() {
-        expanded = false
+        subjectExpanded.onNext(false)
         iconView.isEnabled = false
 
         crossView.visibility = View.INVISIBLE
@@ -94,6 +107,7 @@ internal object MainActivitySearchHelper {
     // STATES:
 
     private fun setStateNow() {
+        val expanded = this.isViewExpanded
         tabs.isVisible = !expanded
         queryView.isVisible = expanded
         crossView.isVisible = expanded
@@ -116,8 +130,8 @@ internal object MainActivitySearchHelper {
         crossView = closeIconView; tabs = tabLayout
 
         setStateNow()
-        iconView.setOnClickListener {
-            if(!expanded)
+        searchIconView.setOnClickListener {
+            if(!this.isViewExpanded)
                 animateExpand()
         }
         closeIconView.setOnClickListener {

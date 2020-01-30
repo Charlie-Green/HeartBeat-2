@@ -14,6 +14,7 @@ import by.vadim_churun.individual.heartbeat2.app.model.state.*
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.*
 import by.vadim_churun.individual.heartbeat2.app.ui.common.SearchViewOwner
 import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
+import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
 import by.vadim_churun.individual.heartbeat2.trans.FabDrawableAnimator
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -226,11 +227,7 @@ class SongsCollectionFragment: Fragment(), SongsCollectionUI, PlaylistContentMod
         = SongsCollectionSubjects.SET_PRIORITY
 
     override fun searchIntent(): Observable<CharSequence>
-         = (super.requireActivity() as SearchViewOwner)
-            .observableSearchQuery()
-            .doOnNext { query ->
-                android.util.Log.v("HbSearch", "Searching for song: $query")
-            }
+        = UiUtils.searchIntent(this)
 
     override fun submitPermissionsResultIntent():
     Observable<SongsCollectionAction.SubmitPermissionsResult>

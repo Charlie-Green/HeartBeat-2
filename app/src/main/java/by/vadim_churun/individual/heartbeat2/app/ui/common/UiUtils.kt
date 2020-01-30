@@ -3,8 +3,10 @@ import android.content.res.Resources
 import android.util.DisplayMetrics
 import android.view.*
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import io.reactivex.Observable
 
 
 object UiUtils {
@@ -59,5 +61,12 @@ object UiUtils {
             override fun onStateChanged(bottomSheet: View, newState: Int)
             {   }
         })
+    }
+
+    fun searchIntent(fragmentOfSearchViewActivity: Fragment): Observable<CharSequence> {
+        val fragm = fragmentOfSearchViewActivity
+        val activity = fragm.requireActivity() as SearchViewOwner
+        val id = fragm.requireArguments().getInt(SearchViewOwner.KEY_COMPONENT_ID)
+        return activity.observableSearchQuery(id)
     }
 }
