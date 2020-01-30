@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.model.state.*
 import by.vadim_churun.individual.heartbeat2.app.presenter.song.*
-import by.vadim_churun.individual.heartbeat2.app.ui.common.SearchViewOwner
 import by.vadim_churun.individual.heartbeat2.app.ui.common.ServiceSource
 import by.vadim_churun.individual.heartbeat2.app.ui.common.UiUtils
 import by.vadim_churun.individual.heartbeat2.trans.FabDrawableAnimator

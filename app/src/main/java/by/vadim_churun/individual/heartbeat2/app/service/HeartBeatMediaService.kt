@@ -110,6 +110,14 @@ class HeartBeatMediaService: Service() {
         songsRepo.updatePlaylistContent(playlistID, removedSongIds, addedSongIds)
     }
 
+    fun setSongsSearchQuery(query: CharSequence) {
+        songsRepo.setSearchQuery(query)
+    }
+
+    fun setPlaylistsSearchQuery(query: CharSequence) {
+        plistsRepo.setSearchQuery(query)
+    }
+
 
     fun observableSongsCollectionState()
         = songsRepo.observableState()

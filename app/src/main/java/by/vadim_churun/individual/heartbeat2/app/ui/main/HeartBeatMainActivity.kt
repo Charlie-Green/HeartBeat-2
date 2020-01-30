@@ -8,7 +8,6 @@ import android.view.View
 import by.vadim_churun.individual.heartbeat2.app.R
 import by.vadim_churun.individual.heartbeat2.app.presenter.service.*
 import by.vadim_churun.individual.heartbeat2.app.service.HeartBeatMediaService
-import by.vadim_churun.individual.heartbeat2.app.ui.MainActivitySearchHelper
 import by.vadim_churun.individual.heartbeat2.app.ui.common.*
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jakewharton.rxbinding3.viewpager2.pageSelections
@@ -97,13 +96,14 @@ class HeartBeatMainActivity:
                     if(it == true)
                         adapter.saveSearchAt(tabPager.currentItem, query)
                 }
-            }.distinctUntilChanged()
+            }
+
     }
 
     private fun subscribeTabSelected()
         = tabPager.pageSelections()
             .doOnNext { position ->
-                val adapter = tabPager.adapter as MainActivityTabsAdapter ?: return@doOnNext
+                val adapter = tabPager.adapter as MainActivityTabsAdapter? ?: return@doOnNext
                 etSearchQuery.setText(adapter.lastSearchAt(position))
             }.subscribe()
 

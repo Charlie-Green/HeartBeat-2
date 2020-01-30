@@ -37,8 +37,8 @@ class SongsCollectionPresenter {
 
     private fun subscribeSearch(service: HeartBeatMediaService, ui: SongsCollectionUI)
         = ui.searchIntent()
-            .doOnNext {
-                // TODO
+            .doOnNext { query ->
+                service.setSongsSearchQuery(query)
             }.subscribe()
 
     private fun subscribeCollectionState(service: HeartBeatMediaService, ui: SongsCollectionUI)

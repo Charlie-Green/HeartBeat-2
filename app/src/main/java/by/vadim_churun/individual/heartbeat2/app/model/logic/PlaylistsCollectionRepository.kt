@@ -12,12 +12,15 @@ import io.reactivex.subjects.PublishSubject
 
 class PlaylistsCollectionRepository @Inject constructor(
     private val dbMan: DatabaseManager,
-    private val mapper: Mapper
+    private val mapper: Mapper,
+    private val searchMan: SearchManager
 ) {
     ////////////////////////////////////////////////////////////////////////////////////////
     // COLLECTION STATE:
 
+    private val subjectSearchQuery = PublishSubject.create<CharSequence>()
     private var rxState: Observable<out PlaylistsCollectionState>? = null
+    private var lastSearchQuery: CharSequence = ""
 
     fun observableState()
         = rxState ?: dbMan.observablePlaylistHeaders()
@@ -25,13 +28,24 @@ class PlaylistsCollectionRepository @Inject constructor(
             .map { entities ->
                 entities.map { headerEntity ->
                     PlaylistHeader.fromEntity(headerEntity)
-                }
-            }.map<PlaylistsCollectionState> { headers ->
-                PlaylistsCollection.from(headers)
+                }.also { searchMan.preparePlaylistsAsync(it) }
+                lastSearchQuery
+            }.mergeWith(
+                subjectSearchQuery
+                    .doOnNext { newQuery ->
+                        lastSearchQuery = newQuery
+                    }
+            ).map<PlaylistsCollectionState> { searchQuery ->
+                searchMan.searchPlaylists(searchQuery)
+                    .let { PlaylistsCollection.from(it) }
                     .let { PlaylistsCollectionState.Prepared(it) }
             }.startWith( PlaylistsCollectionState.Preparing )
             .observeOn(AndroidSchedulers.mainThread())
             .also { rxState = it }
+
+    fun setSearchQuery(query: CharSequence) {
+        subjectSearchQuery.onNext(query)
+    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////

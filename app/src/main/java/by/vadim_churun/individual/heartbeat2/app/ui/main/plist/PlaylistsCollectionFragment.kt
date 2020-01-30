@@ -55,7 +55,6 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
 
         pagerPlists.post {
             retainedPosition = null
-            android.util.Log.v("HbPlist", "Setting position: $position")
             pagerPlists.currentItem = position
         }
     }
@@ -78,10 +77,10 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
     private val disposable = CompositeDisposable()
 
     private fun subscribeService(source: ServiceSource)
-            = source.observableService()
-        .doOnNext { service ->
-            presenter.bind(service, this)
-        }.subscribe()
+        = source.observableService()
+            .doOnNext { service ->
+                presenter.bind(service, this)
+            }.subscribe()
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +99,6 @@ class PlaylistsCollectionFragment: Fragment(), PlaylistsCollectionUI {
             }.debounce(700L, TimeUnit.MILLISECONDS)  // The user may be just scrolling fast,
             .map {                                   // so omit redundant open requests.
                 val plist = this.currentHeader
-                android.util.Log.v("HbPlist", "Want to open playlist ${plist?.ID}")
                 PlaylistsCollectionAction.OpenPlaylist( OptionalID.wrap(plist?.ID) )
             }
 

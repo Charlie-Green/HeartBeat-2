@@ -21,8 +21,8 @@ class SongsCollectionRepository @Inject constructor(
     private val collectMan: SongsCollectionManager,
     private val dbMan: DatabaseManager,
     private val syncMan: SyncManager,
-    private val stubMan: SongStubsManager,
     private val sourcesMan: SongsSourcesManager,
+    private val searchMan: SearchManager,
     private val mapper: Mapper
 ) {
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -53,24 +53,30 @@ class SongsCollectionRepository @Inject constructor(
     /** A help class to construct [SongsCollectionState.CollectionPrepared] **/
     private class PreparedHolder(
         var playlistID: Int?,
+        var allSongsRaw: List<SongWithSettings>?,
         var allSongs: SongsList?,
         var playlistSongs: SongsList?,
-        var searchQuery: String
+        var searchQuery: CharSequence
     )
 
     private var cachedPreparedState: SongsCollectionState.CollectionPrepared? = null
     private val subjectPlaylistId = PublishSubject.create<OptionalID>()
-    private val subjectSearchQuery = PublishSubject.create<String>()
-    private var lastHolder = PreparedHolder(null, null, null, "")
+    private val subjectSearchQuery = PublishSubject.create<CharSequence>()
+    private var lastHolder = PreparedHolder(null, null, null, null, "")
     private var rxPreparedState: Observable<SongsCollectionState>? = null
 
     private fun observableCollectionPreparedState(): Observable<SongsCollectionState>
         = rxPreparedState ?: dbMan
             .observableSongs()
             .subscribeOn(Schedulers.io())
-            .map { songs ->
-                val songsList = mapper.songsListFromEntities(songs)
-                lastHolder.apply { allSongs = songsList }
+            .map { songEntities ->
+                val songs = mapper.songsWithSettingsFromEntities(songEntities)
+                searchMan.prepareSongsAsync(songs)
+                val songsList = mapper.songsList(songs)
+                lastHolder.apply {
+                    allSongsRaw = songs
+                    allSongs = songsList
+                }
             }.mergeWith(
                 subjectPlaylistId.doOnNext { optionalID ->
                     lastHolder.playlistID = optionalID.idOrNull
@@ -79,10 +85,16 @@ class SongsCollectionRepository @Inject constructor(
                         dbMan.observablePlaylistContent(it)
                             .subscribeOn(Schedulers.io())
                             .map { playlistContent ->
-                                val songs = mapper.songsListFromViews(playlistContent)
-                                lastHolder.apply { playlistSongs = songs }
+                                val songs = mapper.songsWithSettingsFromViews(playlistContent)
+                                searchMan.prepareSongsAsync(songs)
+                                val songsList = mapper.songsList(songs)
+                                lastHolder.apply { playlistSongs = songsList }
                             }
-                    } ?: Observable.just(lastHolder)
+                    } ?: Observable.just(lastHolder).also {
+                        lastHolder.allSongsRaw?.also {
+                            searchMan.prepareSongsAsync(it)
+                        }
+                    }
                 }.subscribeOn(Schedulers.computation())
             ).mergeWith(
                 subjectSearchQuery.map { query ->
@@ -90,24 +102,20 @@ class SongsCollectionRepository @Inject constructor(
                 }
             ).observeOn(Schedulers.computation())
             .map<SongsCollectionState> { holder ->
-                android.util.Log.v(
-                    "HbSongs", "Preparing collection for playlist ${holder.playlistID}" )
-
                 val actualSongs =
                     if(holder.playlistID == null) holder.allSongs!!
                     else holder.playlistSongs!!
 
-                // Signal the full (with no search applied) collection to underlying engines:
+                // Signal the full collection to underlying engines.
+                // It'll allow to shuffle the full collection,
+                // not only the songs matching current search query.
                 subjectCollectionInternal.onNext(actualSongs)
 
-                // TODO: Filter the songs according to the current search query.
-                val filteredSongs = actualSongs
-
+                val filteredSongs = searchMan.searchSongs(holder.searchQuery)
                 SongsCollectionState.CollectionPrepared(
-                    filteredSongs,
-                    if(holder.playlistID == null) null
-                        else holder.allSongs!!,
-                    holder.playlistID ?: 0
+                    songs = mapper.songsList(filteredSongs),
+                    allSongs = if(holder.playlistID == null) null else holder.allSongs!!,
+                    playlistID = holder.playlistID ?: 0
                 ).also { cachedPreparedState = it }
             }.mergeWith(
                 Observable.create { emitter ->
@@ -201,6 +209,10 @@ class SongsCollectionRepository @Inject constructor(
             PlaylistContentEditHolder(playlistID, removedSongIDs, addedSongIDs) )
     }
 
+    fun setSearchQuery(query: CharSequence) {
+        subjectSearchQuery.onNext(query)
+    }
+
     val previousSong: SongWithSettings?
         get() = collectMan.previous
 
@@ -222,5 +234,6 @@ class SongsCollectionRepository @Inject constructor(
     fun dispose() {
         disposable.clear()
         collectMan.dispose()
+        searchMan.dispose()
     }
 }

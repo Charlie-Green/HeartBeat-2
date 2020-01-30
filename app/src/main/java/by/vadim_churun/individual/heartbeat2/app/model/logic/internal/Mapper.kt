@@ -71,13 +71,13 @@ class Mapper @Inject constructor(
             stubMan.stubFrom(song)
         }
 
-    fun songsListFromEntities(entities: List<SongEntity>)
+    fun songsWithSettingsFromEntities(entities: List<SongEntity>)
         = entities.map { entity ->
             songWithSettings(entity)
-        }.let { songsList(it) }
+        }
 
-    fun songsListFromViews(views: List<SongInPlaylistView>)
+    fun songsWithSettingsFromViews(views: List<SongInPlaylistView>)
         = views.map { view ->
             songWithSettings(view)
-        }.let { songsList(it) }
+        }
 }

@@ -1,14 +1,18 @@
-package by.vadim_churun.individual.heartbeat2.app.ui
+package by.vadim_churun.individual.heartbeat2.app.ui.main
 
 import android.animation.Animator
 import android.view.View
 import android.view.ViewPropertyAnimator
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
+import com.jakewharton.rxbinding3.widget.textChangeEvents
 import com.jakewharton.rxbinding3.widget.textChanges
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +27,12 @@ internal object MainActivitySearchHelper {
     private lateinit var tabs: TabLayout
     private val subjectExpanded = BehaviorSubject.create<Boolean>()
     private var bound = false
+    private var lastSearchQuery = ""
+
+    private val inputMan
+        get() =  ContextCompat.getSystemService(
+            queryView.context, InputMethodManager::class.java
+        )!!
 
     val isViewExpanded
         get() = subjectExpanded.value ?: false
@@ -35,10 +45,12 @@ internal object MainActivitySearchHelper {
         if(!bound)
             throw IllegalStateException("Not bound")
         return queryView
-            .textChanges()  // Omit redundant search requests when the user is typing.
-            .debounce(200L, TimeUnit.MILLISECONDS)
+            .textChangeEvents() // Omit redundant search requests when the user is typing.
+            .debounce(300L, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
+            .map { event -> event.text }
             .map { query ->
-                if(this.isViewExpanded) query else ""
+                if(isViewExpanded) query else ""
             }.mergeWith(
                 subjectExpanded.flatMap { expanded ->
                     if(expanded)
@@ -80,6 +92,8 @@ internal object MainActivitySearchHelper {
             queryView.animate().scaleX(1f).configAndStart {
                 crossView.visibility = View.VISIBLE
                 iconView.isEnabled = true
+                queryView.requestFocus()
+                this.inputMan.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
             }
         }
     }
@@ -87,6 +101,7 @@ internal object MainActivitySearchHelper {
     private fun animateIconify() {
         subjectExpanded.onNext(false)
         iconView.isEnabled = false
+        this.inputMan.hideSoftInputFromWindow(queryView.windowToken, 0)
 
         crossView.visibility = View.INVISIBLE
         queryView.pivotX = 0f                            // Collapse to start.
@@ -131,7 +146,7 @@ internal object MainActivitySearchHelper {
 
         setStateNow()
         searchIconView.setOnClickListener {
-            if(!this.isViewExpanded)
+            if(!isViewExpanded)
                 animateExpand()
         }
         closeIconView.setOnClickListener {
