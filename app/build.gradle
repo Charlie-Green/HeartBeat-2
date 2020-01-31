@@ -74,6 +74,11 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-rxjava2:$room_version"
 
+    // Tests:
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+
+    // Module dependencies:
     implementation project(path: ':shared')
     implementation project(path: ':storage')
     implementation project(path: ':trans')
